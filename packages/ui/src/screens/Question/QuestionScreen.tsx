@@ -52,6 +52,13 @@ export interface QuestionScreenProps {
   initial?: QuestionScreenInitial;
   onExit?: () => void;
   onNext?: () => void;
+  /**
+   * Grava a Resposta (`null` é "Não sei"). No modo estudo, a correção só aparece depois que a promessa
+   * resolve; rejeitar mostra o erro de gravação e mantém a escolha.
+   */
+  onAnswer?: (pickedId: string | null) => Promise<void> | void;
+  /** Confiança informada depois de um acerto, no modo estudo. */
+  onConfidence?: (value: Confidence) => void;
 }
 
 const letters = ["A", "B", "C", "D", "E"];
@@ -65,6 +72,8 @@ export function QuestionScreen({
   initial = {},
   onExit,
   onNext,
+  onAnswer,
+  onConfidence,
 }: QuestionScreenProps) {
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId ?? null);
   const [answer, setAnswer] = useState(initial.answer);
@@ -74,6 +83,8 @@ export function QuestionScreen({
   const [excerpt, setExcerpt] = useState(initial.excerpt);
   const [needConfidence, setNeedConfidence] = useState(!!initial.needConfidence);
   const [current, setCurrent] = useState(round.current);
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const q = question;
   const study = mode === "study";
@@ -89,9 +100,18 @@ export function QuestionScreen({
     setNeedConfidence(false);
   };
 
-  const submit = (pickedId: string | null) => {
+  const submit = async (pickedId: string | null) => {
     if (study) {
-      setAnswer({ pickedId });
+      setSaving(true);
+      setSaveFailed(false);
+      try {
+        await onAnswer?.(pickedId);
+        setAnswer({ pickedId });
+      } catch {
+        setSaveFailed(true);
+      } finally {
+        setSaving(false);
+      }
       return;
     }
     if (pickedId !== null && !confidence) {
@@ -124,7 +144,10 @@ export function QuestionScreen({
           onOpenExcerpt={() => setExcerpt("ready")}
           divergence={q.divergence}
           confidence={correct ? confidence : undefined}
-          onConfidenceChange={setConfidence}
+          onConfidenceChange={(value) => {
+            setConfidence(value);
+            onConfidence?.(value);
+          }}
           confidenceError={initial.confidenceError}
           contestation={contestation}
           onContest={() => setContestOpen(true)}
@@ -165,8 +188,8 @@ export function QuestionScreen({
           status={status}
           selectedId={selectedId}
           onSelect={setSelectedId}
-          submitting={initial.submitting}
-          submitError={study ? initial.submitError : undefined}
+          submitting={initial.submitting || saving}
+          submitError={study ? initial.submitError || saveFailed : undefined}
           onSubmit={() => submit(selectedId)}
           onDontKnow={() => submit(null)}
           onRetry={() => undefined}

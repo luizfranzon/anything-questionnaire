@@ -40,6 +40,7 @@ export interface RoundCreateScreenProps {
   onSubmit?: (v: { count: number; mode: "study" | "mock"; topicIds: string[] }) => void;
   onRetry?: () => void;
   onStart?: () => void;
+  onBack?: () => void;
 }
 
 export const COUNT_MIN = 1;
@@ -60,6 +61,7 @@ export function RoundCreateScreen({
   onSubmit,
   onRetry,
   onStart,
+  onBack,
 }: RoundCreateScreenProps) {
   const [count, setCount] = useState<number | null>(initial?.count ?? 20);
   const [mode, setMode] = useState<"study" | "mock">(initial?.mode ?? "study");
@@ -81,7 +83,7 @@ export function RoundCreateScreen({
 
   const header = (
     <PageHeader
-      back={{ label: studyName, href: "#/estudos/1" }}
+      back={onBack ? { label: studyName, onClick: onBack } : { label: studyName, href: "#/estudos/1" }}
       title={phase === "form" ? "Nova Rodada" : "Gerando a Rodada"}
       level="page"
     />

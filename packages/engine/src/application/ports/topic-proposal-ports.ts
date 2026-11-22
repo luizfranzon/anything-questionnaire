@@ -29,15 +29,3 @@ export interface UsageRepository {
   insert(record: UsageRecord): Promise<void>;
   find(filter: { studyId?: string }): Promise<UsageRecord[]>;
 }
-
-export type JobPhase = "queued" | "running" | "retrying" | "completed" | "failed";
-
-/** Persistent background queue for proposal jobs. */
-export interface ProposalQueue {
-  enqueue(proposalId: string): Promise<string>;
-  phaseOf(jobId: string): Promise<JobPhase>;
-  /** Registers the worker. Failures thrown by the handler are retried automatically. */
-  work(handler: (proposalId: string) => Promise<void>): Promise<void>;
-  /** Runs every ready job (and retries) to completion. */
-  drain(): Promise<void>;
-}

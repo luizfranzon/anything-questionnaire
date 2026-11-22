@@ -20,5 +20,7 @@ export interface UsageRecord extends TokenUsage {
   stage: Stage;
   model: string;
   studyId: string | null;
+  /** The Round the call served, when there is one. */
+  roundId: string | null;
   createdAt: Date;
 }

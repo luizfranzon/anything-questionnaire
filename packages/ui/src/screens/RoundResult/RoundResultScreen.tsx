@@ -9,6 +9,7 @@ export interface RoundResultScreenProps extends Omit<RoundResultProps, "onNewRou
   onNewRound?: () => void;
   onReview?: () => void;
   onRetry?: () => void;
+  onBack?: () => void;
 }
 
 /** Tickets 03 e 07: o resultado ao fim da Rodada. Primária: "Nova Rodada". */
@@ -18,11 +19,15 @@ export function RoundResultScreen({
   onNewRound,
   onReview,
   onRetry,
+  onBack,
   ...result
 }: RoundResultScreenProps) {
   return (
     <AppShell current="studies" width="reading">
-      <PageHeader back={{ label: studyName, href: "#/estudos/1" }} title="Resultado da Rodada" />
+      <PageHeader
+        back={onBack ? { label: studyName, onClick: onBack } : { label: studyName, href: "#/estudos/1" }}
+        title="Resultado da Rodada"
+      />
       <RoundResult
         {...result}
         onNewRound={onNewRound ?? (() => undefined)}

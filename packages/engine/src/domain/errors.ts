@@ -9,7 +9,18 @@ export type DomainErrorCode =
   | "TOPIC_NAME_TOO_LONG"
   | "TOPIC_NAME_DUPLICATE"
   | "PROPOSAL_NOT_FOUND"
-  | "PROPOSAL_NOT_READY";
+  | "PROPOSAL_NOT_READY"
+  | "ROUND_NOT_FOUND"
+  | "ROUND_COUNT_INVALID"
+  | "NO_ACTIVE_TOPICS"
+  | "TOPIC_NOT_IN_STUDY"
+  | "ROUND_NOT_READY"
+  | "ROUND_NOT_COMPLETED"
+  | "QUESTION_NOT_IN_ROUND"
+  | "ALTERNATIVE_NOT_FOUND"
+  | "ALREADY_ANSWERED"
+  | "NOT_ANSWERED"
+  | "CONFIDENCE_NOT_APPLICABLE";
 
 /** A business rule was violated. Carries a stable code; presentation decides the user-facing text. */
 export class DomainError extends Error {

@@ -9,9 +9,9 @@ import {
 import type { UsageRecord } from "../../domain/usage";
 import type { ClaudeGateway } from "../ports/claude-gateway";
 import type { Clock } from "../ports/clock";
+import type { JobQueue } from "../ports/job-queue";
 import type { StudyRepository } from "../ports/study-repository";
 import type {
-  ProposalQueue,
   ProposalRepository,
   StoredProposal,
   TopicRepository,
@@ -23,7 +23,7 @@ interface Deps {
   proposals: ProposalRepository;
   topics: TopicRepository;
   usage: UsageRepository;
-  queue: ProposalQueue;
+  queue: JobQueue;
   claude: ClaudeGateway;
   clock: Clock;
 }
@@ -52,6 +52,7 @@ export function createTopicProposalUseCases({ studies, proposals, topics, usage,
       stage: "topic-extraction",
       model,
       studyId: study.id,
+      roundId: null,
       ...tokens,
       createdAt: clock.now(),
     };

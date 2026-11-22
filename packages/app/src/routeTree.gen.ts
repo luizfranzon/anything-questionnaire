@@ -10,14 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RoundsRoundIdRouteImport } from './routes/rounds.$roundId'
 import { Route as StudiesIndexRouteImport } from './routes/studies.index'
 import { Route as StudiesNewRouteImport } from './routes/studies.new'
+import { Route as RoundsRoundIdResultRouteImport } from './routes/rounds.$roundId.result'
 import { Route as StudiesStudyIdEditRouteImport } from './routes/studies.$studyId.edit'
 import { Route as StudiesStudyIdTopicsRouteImport } from './routes/studies.$studyId.topics'
+import { Route as StudiesStudyIdRoundsNewRouteImport } from './routes/studies.$studyId.rounds.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoundsRoundIdRoute = RoundsRoundIdRouteImport.update({
+  id: '/rounds/$roundId',
+  path: '/rounds/$roundId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudiesIndexRoute = StudiesIndexRouteImport.update({
@@ -30,6 +38,11 @@ const StudiesNewRoute = StudiesNewRouteImport.update({
   path: '/studies/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoundsRoundIdResultRoute = RoundsRoundIdResultRouteImport.update({
+  id: '/result',
+  path: '/result',
+  getParentRoute: () => RoundsRoundIdRoute,
+} as any)
 const StudiesStudyIdEditRoute = StudiesStudyIdEditRouteImport.update({
   id: '/studies/$studyId/edit',
   path: '/studies/$studyId/edit',
@@ -40,59 +53,84 @@ const StudiesStudyIdTopicsRoute = StudiesStudyIdTopicsRouteImport.update({
   path: '/studies/$studyId/topics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudiesStudyIdRoundsNewRoute = StudiesStudyIdRoundsNewRouteImport.update({
+  id: '/studies/$studyId/rounds/new',
+  path: '/studies/$studyId/rounds/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies/': typeof StudiesIndexRoute
+  '/rounds/$roundId/result': typeof RoundsRoundIdResultRoute
   '/studies/$studyId/edit': typeof StudiesStudyIdEditRoute
   '/studies/$studyId/topics': typeof StudiesStudyIdTopicsRoute
+  '/studies/$studyId/rounds/new': typeof StudiesStudyIdRoundsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies': typeof StudiesIndexRoute
+  '/rounds/$roundId/result': typeof RoundsRoundIdResultRoute
   '/studies/$studyId/edit': typeof StudiesStudyIdEditRoute
   '/studies/$studyId/topics': typeof StudiesStudyIdTopicsRoute
+  '/studies/$studyId/rounds/new': typeof StudiesStudyIdRoundsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies/': typeof StudiesIndexRoute
+  '/rounds/$roundId/result': typeof RoundsRoundIdResultRoute
   '/studies/$studyId/edit': typeof StudiesStudyIdEditRoute
   '/studies/$studyId/topics': typeof StudiesStudyIdTopicsRoute
+  '/studies/$studyId/rounds/new': typeof StudiesStudyIdRoundsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/rounds/$roundId'
     | '/studies/new'
     | '/studies/'
+    | '/rounds/$roundId/result'
     | '/studies/$studyId/edit'
     | '/studies/$studyId/topics'
+    | '/studies/$studyId/rounds/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/rounds/$roundId'
     | '/studies/new'
     | '/studies'
+    | '/rounds/$roundId/result'
     | '/studies/$studyId/edit'
     | '/studies/$studyId/topics'
+    | '/studies/$studyId/rounds/new'
   id:
     | '__root__'
     | '/'
+    | '/rounds/$roundId'
     | '/studies/new'
     | '/studies/'
+    | '/rounds/$roundId/result'
     | '/studies/$studyId/edit'
     | '/studies/$studyId/topics'
+    | '/studies/$studyId/rounds/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RoundsRoundIdRoute: typeof RoundsRoundIdRouteWithChildren
   StudiesNewRoute: typeof StudiesNewRoute
   StudiesIndexRoute: typeof StudiesIndexRoute
   StudiesStudyIdEditRoute: typeof StudiesStudyIdEditRoute
   StudiesStudyIdTopicsRoute: typeof StudiesStudyIdTopicsRoute
+  StudiesStudyIdRoundsNewRoute: typeof StudiesStudyIdRoundsNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -102,6 +140,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rounds/$roundId': {
+      id: '/rounds/$roundId'
+      path: '/rounds/$roundId'
+      fullPath: '/rounds/$roundId'
+      preLoaderRoute: typeof RoundsRoundIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studies/': {
@@ -118,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudiesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rounds/$roundId/result': {
+      id: '/rounds/$roundId/result'
+      path: '/result'
+      fullPath: '/rounds/$roundId/result'
+      preLoaderRoute: typeof RoundsRoundIdResultRouteImport
+      parentRoute: typeof RoundsRoundIdRoute
+    }
     '/studies/$studyId/edit': {
       id: '/studies/$studyId/edit'
       path: '/studies/$studyId/edit'
@@ -132,15 +184,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudiesStudyIdTopicsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studies/$studyId/rounds/new': {
+      id: '/studies/$studyId/rounds/new'
+      path: '/studies/$studyId/rounds/new'
+      fullPath: '/studies/$studyId/rounds/new'
+      preLoaderRoute: typeof StudiesStudyIdRoundsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface RoundsRoundIdRouteChildren {
+  RoundsRoundIdResultRoute: typeof RoundsRoundIdResultRoute
+}
+
+const RoundsRoundIdRouteChildren: RoundsRoundIdRouteChildren = {
+  RoundsRoundIdResultRoute: RoundsRoundIdResultRoute,
+}
+
+const RoundsRoundIdRouteWithChildren = RoundsRoundIdRoute._addFileChildren(
+  RoundsRoundIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RoundsRoundIdRoute: RoundsRoundIdRouteWithChildren,
   StudiesNewRoute: StudiesNewRoute,
   StudiesIndexRoute: StudiesIndexRoute,
   StudiesStudyIdEditRoute: StudiesStudyIdEditRoute,
   StudiesStudyIdTopicsRoute: StudiesStudyIdTopicsRoute,
+  StudiesStudyIdRoundsNewRoute: StudiesStudyIdRoundsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

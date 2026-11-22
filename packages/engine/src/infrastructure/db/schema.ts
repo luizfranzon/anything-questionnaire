@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
-import { integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import type { Alternative } from "../../domain/question";
+import { integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const studies = pgTable("studies", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -36,12 +37,79 @@ export const topicProposals = pgTable("topic_proposals", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const rounds = pgTable("rounds", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studyId: uuid("study_id")
+    .notNull()
+    .references(() => studies.id, { onDelete: "cascade" }),
+  mode: text("mode", { enum: ["study"] }).notNull(),
+  count: integer("count").notNull(),
+  /** The Topics the Round was restricted to; null means every active Topic. */
+  topicIds: jsonb("topic_ids").$type<string[]>(),
+  /** `generating` until the requested count of Questions exists. */
+  status: text("status", { enum: ["generating", "ready"] }).notNull().default("generating"),
+  jobId: text("job_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const questions = pgTable("questions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studyId: uuid("study_id")
+    .notNull()
+    .references(() => studies.id, { onDelete: "cascade" }),
+  topicId: uuid("topic_id")
+    .notNull()
+    .references(() => topics.id, { onDelete: "cascade" }),
+  format: text("format", { enum: ["multiple-choice", "open"] }).notNull(),
+  prompt: text("prompt").notNull(),
+  /** Empty for open questions. */
+  alternatives: jsonb("alternatives").$type<Alternative[]>().notNull(),
+  /** The correct Alternative's id (multiple choice) or the expected answer (open). */
+  answerKey: text("answer_key").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** The Questions presented in a Round, in order. `position` is provisional until the Round is ready. */
+export const roundQuestions = pgTable(
+  "round_questions",
+  {
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => rounds.id, { onDelete: "cascade" }),
+    questionId: uuid("question_id")
+      .notNull()
+      .references(() => questions.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.roundId, t.questionId] })],
+);
+
+export const answers = pgTable(
+  "answers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => rounds.id, { onDelete: "cascade" }),
+    questionId: uuid("question_id")
+      .notNull()
+      .references(() => questions.id, { onDelete: "cascade" }),
+    /** An Alternative id, free text for open questions, or null for "Não sei". */
+    response: text("response"),
+    outcome: text("outcome", { enum: ["correct", "partial", "incorrect"] }).notNull(),
+    confidence: text("confidence", { enum: ["sure", "doubt"] }),
+    answeredAt: timestamp("answered_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [uniqueIndex("answers_round_question_unique").on(t.roundId, t.questionId)],
+);
+
 /** One row per Claude call. Kept when the Study is deleted, since the spend happened. */
 export const usageRecords = pgTable("usage_records", {
   id: uuid("id").primaryKey().defaultRandom(),
   stage: text("stage").notNull(),
   model: text("model").notNull(),
   studyId: uuid("study_id").references(() => studies.id, { onDelete: "set null" }),
+  roundId: uuid("round_id").references(() => rounds.id, { onDelete: "set null" }),
   inputTokens: integer("input_tokens").notNull(),
   outputTokens: integer("output_tokens").notNull(),
   cacheReadTokens: integer("cache_read_tokens").notNull(),

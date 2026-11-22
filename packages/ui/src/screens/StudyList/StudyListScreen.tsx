@@ -29,6 +29,8 @@ export interface StudyListScreenProps {
   status?: StudyListStatus;
   onRetry?: () => void;
   onCreate?: () => void;
+  /** Opens a Study. Without it, the card links to the Study page. */
+  onOpen?: (id: string) => void;
   /** Opens the Study edit form. */
   onEdit?: (id: string) => void;
   /** Exclui o Estudo. Rejeitar a promessa mostra o erro dentro do diálogo. */
@@ -45,6 +47,7 @@ export function StudyListScreen({
   status = "ready",
   onRetry,
   onCreate,
+  onOpen,
   onEdit,
   onDelete,
   initialDelete,
@@ -133,7 +136,8 @@ export function StudyListScreen({
             <li key={s.id}>
               <StudyCard
                 {...s}
-                href={`#/estudos/${s.id}`}
+                href={onOpen ? undefined : `#/estudos/${s.id}`}
+                onOpen={onOpen ? () => onOpen(s.id) : undefined}
                 onEdit={() => onEdit?.(s.id)}
                 onDelete={() => setDeleting({ id: s.id, step: "confirm" })}
               />

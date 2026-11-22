@@ -148,6 +148,7 @@ describe("Usage records", () => {
         stage: "topic-extraction",
         model: "claude-opus-5-5",
         studyId: study.id,
+        roundId: null,
         inputTokens: 120,
         outputTokens: 30,
         cacheReadTokens: 7,

@@ -2,19 +2,21 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import type { ClaudeGateway } from "./application/ports/claude-gateway";
 import { systemClock, type Clock } from "./application/ports/clock";
+import { createRoundUseCases } from "./application/use-cases/round-use-cases";
 import { createStudyUseCases } from "./application/use-cases/study-use-cases";
 import { createTopicProposalUseCases } from "./application/use-cases/topic-proposal-use-cases";
 import {
   createAnthropicClaudeGateway,
   createUnconfiguredClaudeGateway,
 } from "./infrastructure/claude/anthropic-claude-gateway";
+import { createDrizzleRoundRepository } from "./infrastructure/db/drizzle-round-repository";
 import {
   createDrizzleProposalRepository,
   createDrizzleTopicRepository,
   createDrizzleUsageRepository,
 } from "./infrastructure/db/drizzle-topic-proposal-repositories";
 import { createDrizzleStudyRepository } from "./infrastructure/db/drizzle-study-repository";
-import { createPgBossProposalQueue, type QueueOptions } from "./infrastructure/queue/pg-boss-proposal-queue";
+import { createPgBossJobQueues, type QueueOptions } from "./infrastructure/queue/pg-boss-job-queue";
 
 export { runMigrations } from "./infrastructure/db/migrate";
 export { DomainError, type DomainErrorCode } from "./domain/errors";
@@ -25,10 +27,31 @@ export {
   type StudyDetails,
 } from "./domain/study";
 export { TOPIC_NAME_MAX_LENGTH, type ProposalPhase, type Topic, type TopicProposal } from "./domain/topic";
+export {
+  ROUND_COUNT_MAX,
+  ROUND_COUNT_MIN,
+  type AnswerOutcome,
+  type Confidence,
+  type Round,
+  type RoundMode,
+  type RoundPhase,
+  type RoundSettings,
+} from "./domain/round";
+export type {
+  Correction,
+  GeneratedQuestion,
+  NextQuestion,
+  PresentedQuestion,
+  RoundResult,
+} from "./domain/question";
 export type { Stage, TokenUsage, UsageRecord } from "./domain/usage";
 export type { ClaudeGateway } from "./application/ports/claude-gateway";
 export type { Clock } from "./application/ports/clock";
-export { createFakeClaudeGateway, type FakeClaudeGateway } from "./infrastructure/claude/fake-claude-gateway";
+export {
+  createFakeClaudeGateway,
+  sampleQuestion,
+  type FakeClaudeGateway,
+} from "./infrastructure/claude/fake-claude-gateway";
 
 export interface EngineOptions {
   databaseUrl: string;
@@ -40,34 +63,55 @@ export interface EngineOptions {
   queue?: Partial<QueueOptions>;
 }
 
-/** Composition root: wires infrastructure adapters into the application use cases and starts the worker. */
+/** Composition root: wires infrastructure adapters into the application use cases and starts the workers. */
 export async function createEngine(options: EngineOptions) {
   const client = postgres(options.databaseUrl);
   const db = drizzle(client);
   const studies = createDrizzleStudyRepository(db);
-  const queue = await createPgBossProposalQueue(options.databaseUrl, options.queue);
+  const queues = await createPgBossJobQueues(options.databaseUrl, options.queue);
   const claude =
     options.claude ??
     (options.anthropicApiKey
       ? createAnthropicClaudeGateway({ apiKey: options.anthropicApiKey })
       : createUnconfiguredClaudeGateway());
+  const clock = options.clock ?? systemClock;
+  const topics = createDrizzleTopicRepository(db);
+  const usage = createDrizzleUsageRepository(db);
 
   const topicProposals = createTopicProposalUseCases({
     studies,
     proposals: createDrizzleProposalRepository(db),
-    topics: createDrizzleTopicRepository(db),
-    usage: createDrizzleUsageRepository(db),
-    queue,
+    topics,
+    usage,
+    queue: await queues.queue("topic-proposal"),
     claude,
-    clock: options.clock ?? systemClock,
+    clock,
   });
-  await topicProposals.startWorker();
+  const roundUseCases = createRoundUseCases({
+    studies,
+    topics,
+    rounds: createDrizzleRoundRepository(db),
+    usage,
+    queue: await queues.queue("round-generation"),
+    claude,
+    clock,
+  });
+  await Promise.all([topicProposals.startWorker(), roundUseCases.startWorker()]);
+
+  const { startWorker: _a, drainJobs: drainProposals, ...proposalOperations } = topicProposals;
+  const { startWorker: _b, drainJobs: drainRounds, ...roundOperations } = roundUseCases;
 
   return {
     ...createStudyUseCases(studies),
-    ...topicProposals,
+    ...proposalOperations,
+    ...roundOperations,
+    /** Runs all ready jobs, including retries, to completion. Meant for tests and scripts. */
+    async drainJobs(): Promise<void> {
+      await drainProposals();
+      await drainRounds();
+    },
     async close(): Promise<void> {
-      await queue.stop();
+      await queues.stop();
       await client.end();
     },
   };

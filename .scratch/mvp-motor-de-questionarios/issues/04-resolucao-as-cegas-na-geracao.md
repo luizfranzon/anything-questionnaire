@@ -4,7 +4,7 @@
 
 **Blocked by:** 03 (Rodada no modo estudo).
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] A resolução às cegas recebe só enunciados e Alternativas, nunca os Gabaritos nem as Explicações
 - [ ] O lote inteiro é resolvido numa única chamada

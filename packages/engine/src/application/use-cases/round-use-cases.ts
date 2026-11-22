@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { DomainError } from "../../domain/errors";
 import {
   toNewQuestion,
+  type NewQuestion,
   type Correction,
   type NextQuestion,
   type RoundResult,
@@ -81,6 +82,21 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
     };
   }
 
+  /** Keeps only the Questions whose blind answer matches the Gabarito. One call for the whole batch. */
+  async function verifyBlind(studyId: string, roundId: string, batch: NewQuestion[]): Promise<NewQuestion[]> {
+    if (batch.length === 0) return [];
+    const { output, model, usage: tokens } = await claude.resolveBlind({
+      studyId,
+      roundId,
+      questions: batch.map((q) => ({ prompt: q.prompt, alternatives: q.alternatives.map((a) => a.text) })),
+    });
+    await usage.insert({ stage: "blind-resolution", model, studyId, roundId, ...tokens, createdAt: clock.now() });
+    return batch.filter((q, i) => {
+      const chosen = output.answers[i];
+      return chosen !== null && chosen !== undefined && q.alternatives[chosen]?.id === q.answerKey;
+    });
+  }
+
   /** Job handler: writes the missing Questions of each Topic, then releases the Round. Throwing makes the queue retry. */
   async function processRound(roundId: string): Promise<void> {
     const round = await rounds.findById(roundId);
@@ -102,7 +118,7 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
       let calls = 0;
       const maxCalls = Math.ceil(target / GENERATION_BATCH_SIZE) + GENERATION_EXTRA_ATTEMPTS;
       while (missing > 0) {
-        if (calls++ >= maxCalls) throw new Error(`Claude did not return enough valid Questions for "${topic.name}"`);
+        if (calls++ >= maxCalls) throw new Error(`Claude did not produce enough verified Questions for "${topic.name}"`);
         const asked = Math.min(missing, GENERATION_BATCH_SIZE);
         const { output, model, usage: tokens } = await claude.generateQuestions({
           studyId: study.id,
@@ -125,8 +141,11 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
           .map((raw) => toNewQuestion(topic.id, raw, randomUUID, shuffle))
           .filter((q) => q !== null)
           .slice(0, asked);
-        await rounds.addQuestions(round, valid);
-        missing -= valid.length;
+
+        // Blind resolution: a separate call that sees no Gabarito. Questions it disagrees with are dropped.
+        const approved = await verifyBlind(study.id, round.id, valid);
+        await rounds.addQuestions(round, approved);
+        missing -= approved.length;
       }
     }
 

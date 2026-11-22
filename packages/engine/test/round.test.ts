@@ -238,3 +238,77 @@ describe("Answering a Round in study mode", () => {
     await expect(ctx.engine.getRoundResult(round.id)).rejects.toMatchObject({ code: "ROUND_NOT_COMPLETED" });
   });
 });
+
+describe("Blind resolution during generation", () => {
+  it("verifies each batch in one call that never sees Gabaritos or Explicações, and records its usage", async () => {
+    const { study } = await studyWithTopics(["IAM"]);
+    const round = await ctx.engine.createRound(study.id, { count: 3 });
+    await ctx.engine.drainJobs();
+
+    expect(await ctx.engine.getRound(round.id)).toMatchObject({ phase: "ready", generated: 3 });
+    const calls = ctx.claude.calls.resolveBlind;
+    expect(calls).toHaveLength(1);
+    expect(calls[0].questions).toHaveLength(3);
+    const sent = JSON.stringify(calls[0]);
+    expect(sent).not.toMatch(/está certa|está errada|correct|explanation|answerKey/i);
+    expect(Object.keys(calls[0].questions[0]).sort()).toEqual(["alternatives", "prompt"]);
+
+    const records = (await ctx.engine.listUsageRecords({ studyId: study.id })).filter((r) => r.stage === "blind-resolution");
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({ roundId: round.id, studyId: study.id });
+  });
+
+  it("discards Questions the blind answer disagrees with and replaces them with Questions that are verified too", async () => {
+    const { study } = await studyWithTopics(["IAM"]);
+    ctx.claude.whenResolvingBlind({ wrongAt: [1] }, {});
+    const round = await ctx.engine.createRound(study.id, { count: 3 });
+    await ctx.engine.drainJobs();
+
+    expect(await ctx.engine.getRound(round.id)).toMatchObject({ phase: "ready", generated: 3 });
+    // 3 asked, 1 rejected -> 1 replacement asked, and the replacement was also verified.
+    expect(ctx.claude.calls.generateQuestions.map((c) => c.count)).toEqual([3, 1]);
+    expect(ctx.claude.calls.resolveBlind.map((c) => c.questions.length)).toEqual([3, 1]);
+    const records = (await ctx.engine.listUsageRecords({ studyId: study.id })).filter((r) => r.stage === "blind-resolution");
+    expect(records).toHaveLength(2);
+  });
+
+  it("never presents a rejected Question", async () => {
+    const { study } = await studyWithTopics(["IAM"]);
+    ctx.claude.whenGeneratingQuestions(
+      { questions: [sampleQuestion("rejeitada"), sampleQuestion("aprovada")] },
+      { questions: [sampleQuestion("substituta")] },
+    );
+    ctx.claude.whenResolvingBlind({ wrongAt: [0] }, {});
+    const round = await ctx.engine.createRound(study.id, { count: 2 });
+    await ctx.engine.drainJobs();
+
+    const prompts: string[] = [];
+    for (let n = await ctx.engine.getNextQuestion(round.id); n; n = await ctx.engine.getNextQuestion(round.id)) {
+      prompts.push(n.question.prompt);
+      await ctx.engine.answerQuestion(round.id, n.question.id, { choice: null });
+    }
+    expect(prompts.sort()).toEqual(["Pergunta sobre aprovada?", "Pergunta sobre substituta?"]);
+  });
+
+  it("gives up with a clear failure when verification keeps rejecting, instead of looping forever", async () => {
+    const { study } = await studyWithTopics(["IAM"]);
+    ctx.claude.whenResolvingBlind({ wrongAt: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] });
+    const round = await ctx.engine.createRound(study.id, { count: 2 });
+    await ctx.engine.drainJobs();
+
+    expect(await ctx.engine.getRound(round.id)).toMatchObject({ phase: "failed", generated: 0 });
+    await expect(ctx.engine.getNextQuestion(round.id)).rejects.toMatchObject({ code: "ROUND_NOT_READY" });
+    // Bounded: ceil(2/10) + 2 extra attempts per job run, over a bounded number of job retries.
+    expect(ctx.claude.calls.generateQuestions.length).toBeLessThanOrEqual(30);
+  });
+
+  it("keeps Questions already verified when a later batch fails, and retries only what is missing", async () => {
+    const { study } = await studyWithTopics(["IAM", "VPC"]);
+    ctx.claude.whenResolvingBlind({}, ctx.claude.overloaded(), {});
+    const round = await ctx.engine.createRound(study.id, { count: 4 });
+    await ctx.engine.drainJobs();
+
+    expect(await ctx.engine.getRound(round.id)).toMatchObject({ phase: "ready", generated: 4 });
+    expect(ctx.claude.calls.generateQuestions.map((c) => c.topic.name)).toEqual(["IAM", "VPC", "VPC"]);
+  });
+});

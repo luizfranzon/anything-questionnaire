@@ -1,0 +1,12 @@
+{
+  "name": "anything-questionnaire",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "pnpm --filter @anything-questionnaire/engine test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

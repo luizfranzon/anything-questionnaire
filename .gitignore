@@ -3,3 +3,6 @@ storybook-static
 *.log
 sb.log
 shots
+.output
+.nitro
+.env

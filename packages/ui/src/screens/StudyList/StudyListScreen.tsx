@@ -29,6 +29,8 @@ export interface StudyListScreenProps {
   status?: StudyListStatus;
   onRetry?: () => void;
   onCreate?: () => void;
+  /** Opens the Study edit form. */
+  onEdit?: (id: string) => void;
   /** Exclui o Estudo. Rejeitar a promessa mostra o erro dentro do diálogo. */
   onDelete?: (id: string) => Promise<void>;
   /** Só para o Storybook: abre o diálogo de exclusão já neste passo. */
@@ -43,6 +45,7 @@ export function StudyListScreen({
   status = "ready",
   onRetry,
   onCreate,
+  onEdit,
   onDelete,
   initialDelete,
 }: StudyListScreenProps) {
@@ -131,7 +134,7 @@ export function StudyListScreen({
               <StudyCard
                 {...s}
                 href={`#/estudos/${s.id}`}
-                onEdit={() => undefined}
+                onEdit={() => onEdit?.(s.id)}
                 onDelete={() => setDeleting({ id: s.id, step: "confirm" })}
               />
             </li>

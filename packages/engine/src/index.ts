@@ -52,6 +52,7 @@ export {
   type Trend,
   type TopicPerformance,
 } from "./domain/performance";
+export { REVIEW_DEFAULTS } from "./domain/review";
 export type { Stage, TokenUsage, UsageRecord } from "./domain/usage";
 export type { ClaudeGateway } from "./application/ports/claude-gateway";
 export type { Clock } from "./application/ports/clock";

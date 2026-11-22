@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { Alternative } from "../../domain/question";
 import type { Difficulty } from "../../domain/performance";
-import { integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const studies = pgTable("studies", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -70,8 +70,23 @@ export const questions = pgTable("questions", {
   alternatives: jsonb("alternatives").$type<Alternative[]>().notNull(),
   /** The correct Alternative's id (multiple choice) or the expected answer (open). */
   answerKey: text("answer_key").notNull(),
+  /** Only active Questions enter Rounds and Revisões. Voiding and archiving arrive in later tickets. */
+  status: text("status", { enum: ["active", "voided", "archived"] }).notNull().default("active"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** FSRS state of a Question that has been answered at least once. `due` is denormalised for querying. */
+export const questionReviews = pgTable(
+  "question_reviews",
+  {
+    questionId: uuid("question_id")
+      .primaryKey()
+      .references(() => questions.id, { onDelete: "cascade" }),
+    due: timestamp("due", { withTimezone: true }).notNull(),
+    card: jsonb("card").$type<Record<string, unknown>>().notNull(),
+  },
+  (t) => [index("question_reviews_due_idx").on(t.due)],
+);
 
 /** The Questions presented in a Round, in order. `position` is provisional until the Round is ready. */
 export const roundQuestions = pgTable(
@@ -84,6 +99,8 @@ export const roundQuestions = pgTable(
       .notNull()
       .references(() => questions.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
+    /** A Revisão: an already answered Question that came back, as opposed to one generated for the Round. */
+    review: boolean("review").notNull().default(false),
   },
   (t) => [primaryKey({ columns: [t.roundId, t.questionId] })],
 );

@@ -4,12 +4,12 @@
 
 **Blocked by:** 03 (Rodada no modo estudo).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Cada Resposta atualiza o estado FSRS da Pergunta com o mapeamento combinado
-- [ ] Perguntas anuladas ou arquivadas e Perguntas de Tópicos arquivados não entram em Revisão (respeitar a situação, mesmo que esses estados cheguem em fatias futuras)
-- [ ] A composição da Rodada coloca as Revisões vencidas primeiro, até a fração de Revisão (padrão 30%), e completa com Perguntas novas
-- [ ] As Alternativas são embaralhadas a cada apresentação, e a correção continua certa depois do embaralhamento
-- [ ] A página do Estudo mostra o número de Revisões vencidas e um atalho para criar Rodada
-- [ ] O motor usa uma porta de relógio, e os testes avançam o tempo para verificar o vencimento
-- [ ] Testes pela interface do motor cobrem o mapeamento para o FSRS, o vencimento ao longo dos dias, o limite de 30% e o embaralhamento
+- [x] Cada Resposta atualiza o estado FSRS da Pergunta com o mapeamento combinado
+- [x] Perguntas anuladas ou arquivadas e Perguntas de Tópicos arquivados não entram em Revisão (respeitar a situação, mesmo que esses estados cheguem em fatias futuras)
+- [x] A composição da Rodada coloca as Revisões vencidas primeiro, até a fração de Revisão (padrão 30%), e completa com Perguntas novas
+- [x] As Alternativas são embaralhadas a cada apresentação, e a correção continua certa depois do embaralhamento
+- [x] A página do Estudo mostra o número de Revisões vencidas e um atalho para criar Rodada
+- [x] O motor usa uma porta de relógio, e os testes avançam o tempo para verificar o vencimento
+- [x] Testes pela interface do motor cobrem o mapeamento para o FSRS, o vencimento ao longo dos dias, o limite de 30% e o embaralhamento

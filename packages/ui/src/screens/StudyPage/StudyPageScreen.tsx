@@ -158,7 +158,11 @@ export function StudyPageScreen({
         <InlineAlert
           tone="info"
           title={`${data.dueReviews} ${data.dueReviews === 1 ? "Revisão vencida" : "Revisões vencidas"} hoje`}
-          action={<Button variant="link">Criar Rodada com Revisões</Button>}
+          action={
+            <Button variant="link" onClick={onNewRound}>
+              Criar Rodada com Revisões
+            </Button>
+          }
         >
           Elas entram primeiro na próxima Rodada, até 30% das Perguntas.
         </InlineAlert>

@@ -26,6 +26,7 @@ import {
   type Random,
   type TopicPerformance,
 } from "../../domain/performance";
+import { reviewSlots, scheduleFromHistory, shuffleWith } from "../../domain/review";
 import type { UsageRecord } from "../../domain/usage";
 import type { ClaudeGateway } from "../ports/claude-gateway";
 import type { Clock } from "../ports/clock";
@@ -101,6 +102,12 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
     };
   }
 
+  /** Recomputes the Question's FSRS state from every Answer it has received. */
+  async function reschedule(questionId: string): Promise<void> {
+    const card = scheduleFromHistory(await rounds.listQuestionAnswers(questionId));
+    if (card) await rounds.saveReview(questionId, card.due, JSON.parse(JSON.stringify(card)));
+  }
+
   /** Keeps only the Questions whose blind answer matches the Gabarito. One call for the whole batch. */
   async function verifyBlind(studyId: string, roundId: string, batch: NewQuestion[]): Promise<NewQuestion[]> {
     if (batch.length === 0) return [];
@@ -136,7 +143,7 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
       }));
 
     // Questions saved by an earlier attempt count, so a retry only writes what is still missing.
-    const existing = await rounds.listQuestions(round.id);
+    const existing = (await rounds.listQuestions(round.id)).filter((q) => !q.review);
 
     for (const { topicId, count: target, difficulty } of plan) {
       const topic = chosen.find((t) => t.id === topicId);
@@ -179,8 +186,10 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
     }
 
     const all = await rounds.listQuestions(round.id);
-    const byTopic = plan.map(({ topicId }) => topicId).map((id) => all.filter((q) => q.topicId === id).map((q) => q.id));
-    await rounds.markReady(round.id, interleave(byTopic));
+    const generated = all.filter((q) => !q.review);
+    const byTopic = plan.map(({ topicId }) => topicId).map((id) => generated.filter((q) => q.topicId === id).map((q) => q.id));
+    // Revisões come first; what was generated for the Round follows, Topics alternating.
+    await rounds.markReady(round.id, [...all.filter((q) => q.review).map((q) => q.id), ...interleave(byTopic)]);
   }
 
   return {
@@ -197,13 +206,19 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
       }
 
       const candidates = requested ? active.filter((t) => requested.includes(t.id)) : active;
+      // Due Revisões take their places first, up to their share of the Round; new Questions fill the rest.
+      const reviewIds = await rounds.listDueReviews(studyId, clock.now(), {
+        topicIds: candidates.map((t) => t.id),
+        limit: reviewSlots(count),
+      });
       const measured = await measureTopics(studyId, candidates);
-      const allocation = allocateQuestions(count, measured, random, settings);
+      const allocation = allocateQuestions(count - reviewIds.length, measured, random, settings);
       const plan: RoundPlan = measured.flatMap((m, i) =>
         allocation[i] > 0 ? [{ topicId: m.topicId, count: allocation[i], difficulty: difficultyFor(m.performance, settings) }] : [],
       );
 
       const created = await rounds.insert(studyId, { count, mode: roundSettings.mode ?? "study", topicIds: requested, plan });
+      await rounds.attachReviews(created, reviewIds);
       const jobId = await queue.enqueue(created.id);
       await rounds.setJobId(created.id, jobId);
       return toRound({ ...created, jobId });
@@ -213,6 +228,12 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
     async listTopicPerformance(studyId: string): Promise<TopicPerformance[]> {
       if (!(await studies.findById(studyId))) throw new DomainError("STUDY_NOT_FOUND");
       return sortWeakestFirst(await measureTopics(studyId, await topics.findActiveByStudy(studyId)));
+    },
+
+    /** How many Revisões are due right now. */
+    async countDueReviews(studyId: string): Promise<number> {
+      if (!(await studies.findById(studyId))) throw new DomainError("STUDY_NOT_FOUND");
+      return rounds.countDueReviews(studyId, clock.now());
     },
 
     async getRound(roundId: string): Promise<Round> {
@@ -235,7 +256,8 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
           topic: q.topicName,
           format: q.format,
           prompt: q.prompt,
-          alternatives: q.alternatives.map(({ id, text }) => ({ id, text })),
+          // Shuffled on every presentation so position never gives the answer away.
+          alternatives: shuffleWith(q.alternatives, random).map(({ id, text }) => ({ id, text })),
         },
       };
     },
@@ -270,6 +292,7 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
         confidence,
         answeredAt: clock.now(),
       });
+      await reschedule(questionId);
       return {
         outcome,
         correctAlternativeId: question.answerKey,
@@ -285,6 +308,7 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
       if (!answer) throw new DomainError("NOT_ANSWERED");
       if (answer.outcome !== "correct") throw new DomainError("CONFIDENCE_NOT_APPLICABLE");
       await rounds.setConfidence(roundId, questionId, confidence);
+      await reschedule(questionId);
     },
 
     /** Hits out of total, once every Question of the Round has been answered. */

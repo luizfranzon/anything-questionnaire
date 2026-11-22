@@ -1,7 +1,7 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { RoundRepository, StoredRound } from "../../application/ports/round-ports";
-import { answers, questions, roundQuestions, rounds, topics } from "./schema";
+import { answers, questionReviews, questions, roundQuestions, rounds, topics } from "./schema";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -61,6 +61,7 @@ export function createDrizzleRoundRepository(db: PostgresJsDatabase): RoundRepos
           prompt: questions.prompt,
           alternatives: questions.alternatives,
           answerKey: questions.answerKey,
+          review: roundQuestions.review,
         })
         .from(roundQuestions)
         .innerJoin(questions, eq(questions.id, roundQuestions.questionId))
@@ -119,6 +120,73 @@ export function createDrizzleRoundRepository(db: PostgresJsDatabase): RoundRepos
         .from(answers)
         .innerJoin(questions, eq(questions.id, answers.questionId))
         .where(eq(questions.studyId, studyId));
+    },
+
+    attachReviews(round, questionIds) {
+      if (questionIds.length === 0) return Promise.resolve();
+      return db.transaction(async (tx) => {
+        const [{ next }] = await tx
+          .select({ next: sql<number>`coalesce(max(${roundQuestions.position}), -1) + 1` })
+          .from(roundQuestions)
+          .where(eq(roundQuestions.roundId, round.id));
+        await tx
+          .insert(roundQuestions)
+          .values(questionIds.map((questionId, i) => ({ roundId: round.id, questionId, position: Number(next) + i, review: true })));
+      });
+    },
+
+    async listQuestionAnswers(questionId) {
+      if (!UUID_PATTERN.test(questionId)) return [];
+      return db
+        .select({ outcome: answers.outcome, confidence: answers.confidence, answeredAt: answers.answeredAt })
+        .from(answers)
+        .where(eq(answers.questionId, questionId))
+        .orderBy(asc(answers.answeredAt));
+    },
+
+    async saveReview(questionId, due, card) {
+      await db
+        .insert(questionReviews)
+        .values({ questionId, due, card })
+        .onConflictDoUpdate({ target: questionReviews.questionId, set: { due, card } });
+    },
+
+    async listDueReviews(studyId, now, { topicIds, limit } = {}) {
+      if (!UUID_PATTERN.test(studyId) || limit === 0) return [];
+      const query = db
+        .select({ id: questions.id })
+        .from(questionReviews)
+        .innerJoin(questions, eq(questions.id, questionReviews.questionId))
+        .innerJoin(topics, eq(topics.id, questions.topicId))
+        .where(
+          and(
+            eq(questions.studyId, studyId),
+            eq(questions.status, "active"),
+            eq(topics.status, "active"),
+            lte(questionReviews.due, now),
+            topicIds ? inArray(questions.topicId, topicIds) : undefined,
+          ),
+        )
+        .orderBy(asc(questionReviews.due), asc(questions.id));
+      return (await (limit === undefined ? query : query.limit(limit))).map((row) => row.id);
+    },
+
+    async countDueReviews(studyId, now) {
+      if (!UUID_PATTERN.test(studyId)) return 0;
+      const [{ total }] = await db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(questionReviews)
+        .innerJoin(questions, eq(questions.id, questionReviews.questionId))
+        .innerJoin(topics, eq(topics.id, questions.topicId))
+        .where(
+          and(
+            eq(questions.studyId, studyId),
+            eq(questions.status, "active"),
+            eq(topics.status, "active"),
+            lte(questionReviews.due, now),
+          ),
+        );
+      return total;
     },
   };
 }

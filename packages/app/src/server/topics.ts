@@ -88,3 +88,8 @@ export const listTopicPerformance = createServerFn({ method: "GET" })
         })),
       ),
   );
+
+/** Revisões (answered Questions whose spaced repetition is due) waiting in the Study right now. */
+export const countDueReviews = createServerFn({ method: "GET" })
+  .validator((studyId: string) => studyId)
+  .handler(({ data: studyId }): Promise<number> => withEngine((engine) => engine.countDueReviews(studyId)));

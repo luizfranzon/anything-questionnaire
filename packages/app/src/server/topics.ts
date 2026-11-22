@@ -61,3 +61,30 @@ export const countTopics = createServerFn({ method: "GET" })
   .handler(({ data: studyId }): Promise<number> =>
     withEngine(async (engine) => (await engine.listTopics(studyId)).length),
   );
+
+export interface TopicPerformanceDto {
+  id: string;
+  name: string;
+  /** 0 to 100, or null when the Topic was never asked. */
+  performance: number | null;
+  trend: "up" | "down" | "flat" | "unknown";
+  delta?: number;
+  answers: number;
+}
+
+/** The active Topics of a Study, never-asked first and then from the weakest to the strongest. */
+export const listTopicPerformance = createServerFn({ method: "GET" })
+  .validator((studyId: string) => studyId)
+  .handler(
+    ({ data: studyId }): Promise<TopicPerformanceDto[]> =>
+      withEngine(async (engine) =>
+        (await engine.listTopicPerformance(studyId)).map((t) => ({
+          id: t.topicId,
+          name: t.name,
+          performance: t.performance === null ? null : Math.round(t.performance * 100),
+          trend: t.trend === null ? "unknown" : t.trend === "steady" ? "flat" : t.trend,
+          delta: t.delta ?? undefined,
+          answers: t.answers,
+        })),
+      ),
+  );

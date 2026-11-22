@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { Alternative } from "../../domain/question";
+import type { Difficulty } from "../../domain/performance";
 import { integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const studies = pgTable("studies", {
@@ -46,6 +47,8 @@ export const rounds = pgTable("rounds", {
   count: integer("count").notNull(),
   /** The Topics the Round was restricted to; null means every active Topic. */
   topicIds: jsonb("topic_ids").$type<string[]>(),
+  /** How many Questions each Topic gets and at which Dificuldade, drawn once when the Round is created. Null on old Rounds. */
+  plan: jsonb("plan").$type<Array<{ topicId: string; count: number; difficulty: Difficulty }>>(),
   /** `generating` until the requested count of Questions exists. */
   status: text("status", { enum: ["generating", "ready"] }).notNull().default("generating"),
   jobId: text("job_id"),
@@ -62,6 +65,7 @@ export const questions = pgTable("questions", {
     .references(() => topics.id, { onDelete: "cascade" }),
   format: text("format", { enum: ["multiple-choice", "open"] }).notNull(),
   prompt: text("prompt").notNull(),
+  difficulty: text("difficulty", { enum: ["easy", "medium", "hard"] }).notNull().default("medium"),
   /** Empty for open questions. */
   alternatives: jsonb("alternatives").$type<Alternative[]>().notNull(),
   /** The correct Alternative's id (multiple choice) or the expected answer (open). */

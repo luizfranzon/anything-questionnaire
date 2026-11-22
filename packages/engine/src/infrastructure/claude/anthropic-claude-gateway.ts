@@ -40,7 +40,10 @@ Regras:
 - "correctIndex" é a posição (a partir de 0) da Alternativa correta. Varie essa posição entre as Perguntas.
 - A "explanation" de cada Alternativa diz por que ela está certa ou por que está errada, de forma concreta.
 - As Perguntas do pedido cobrem aspectos diferentes do Tópico e não repetem umas às outras.
-- Use o conhecimento atual e correto do assunto. O Objetivo do estudo dá o foco e o nível de exigência.`;
+- Use o conhecimento atual e correto do assunto. O Objetivo do estudo dá o foco e o nível de exigência.
+- O pedido traz a Dificuldade: "fácil" cobra conceitos e definições centrais; "média" cobra aplicação em cenários comuns; "difícil" cobra cenários com várias restrições, exceções e distratores plausíveis. A Dificuldade muda a exigência da Pergunta, nunca a clareza do enunciado nem a existência de uma só resposta correta.`;
+
+const DIFFICULTY_LABEL = { easy: "fácil", medium: "média", hard: "difícil" } as const;
 
 function toUsage(usage: Anthropic.Usage): TokenUsage {
   return {
@@ -90,7 +93,7 @@ export function createAnthropicClaudeGateway({
       });
     },
 
-    async generateQuestions({ goal, topic, count }) {
+    async generateQuestions({ goal, topic, difficulty, count }) {
       const model = modelFor("question-generation");
       return guarded(async () => {
         const message = await client.messages.parse({

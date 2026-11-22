@@ -16,11 +16,21 @@ import {
   type RoundPhase,
   type RoundSettings,
 } from "../../domain/round";
+import {
+  PERFORMANCE_DEFAULTS,
+  allocateQuestions,
+  difficultyFor,
+  measureTopic,
+  sortWeakestFirst,
+  type Difficulty,
+  type Random,
+  type TopicPerformance,
+} from "../../domain/performance";
 import type { UsageRecord } from "../../domain/usage";
 import type { ClaudeGateway } from "../ports/claude-gateway";
 import type { Clock } from "../ports/clock";
 import type { JobQueue } from "../ports/job-queue";
-import type { RoundRepository, StoredRound } from "../ports/round-ports";
+import type { RoundPlan, RoundRepository, StoredRound } from "../ports/round-ports";
 import type { StudyRepository } from "../ports/study-repository";
 import type { TopicRepository, UsageRepository } from "../ports/topic-proposal-ports";
 
@@ -37,6 +47,8 @@ interface Deps {
   queue: JobQueue;
   claude: ClaudeGateway;
   clock: Clock;
+  /** Source of randomness for drawing Topics; replaced in tests. */
+  random?: Random;
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -48,7 +60,14 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-export function createRoundUseCases({ studies, topics, rounds, usage, queue, claude, clock }: Deps) {
+export function createRoundUseCases({ studies, topics, rounds, usage, queue, claude, clock, random = Math.random }: Deps) {
+  const settings = { ...PERFORMANCE_DEFAULTS };
+
+  async function measureTopics(studyId: string, active: Array<{ id: string; name: string }>): Promise<TopicPerformance[]> {
+    const history = await rounds.listAnswerHistory(studyId);
+    return active.map((topic) => measureTopic(topic, history, settings));
+  }
+
   async function requireRound(id: string): Promise<StoredRound> {
     const round = await rounds.findById(id);
     if (!round) throw new DomainError("ROUND_NOT_FOUND");
@@ -107,13 +126,22 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
     const active = await topics.findActiveByStudy(study.id);
     const chosen = round.topicIds ? active.filter((t) => round.topicIds!.includes(t.id)) : active;
     if (chosen.length === 0) throw new Error("The Round has no active Topics left");
-    const targets = distributeEvenly(round.count, chosen.length);
+    // The plan was drawn when the Round was created, so a retry keeps asking for the same thing.
+    const plan: RoundPlan =
+      round.plan ??
+      distributeEvenly(round.count, chosen.length).map((count, i) => ({
+        topicId: chosen[i].id,
+        count,
+        difficulty: "medium" as Difficulty,
+      }));
 
     // Questions saved by an earlier attempt count, so a retry only writes what is still missing.
     const existing = await rounds.listQuestions(round.id);
 
-    for (const [index, topic] of chosen.entries()) {
-      const target = targets[index];
+    for (const { topicId, count: target, difficulty } of plan) {
+      const topic = chosen.find((t) => t.id === topicId);
+      // An archived Topic would leave the Round short of its count; fail visibly instead of finishing incomplete.
+      if (!topic) throw new Error("A Topic of the Round plan is no longer active");
       let missing = target - existing.filter((q) => q.topicId === topic.id).length;
       let calls = 0;
       const maxCalls = Math.ceil(target / GENERATION_BATCH_SIZE) + GENERATION_EXTRA_ATTEMPTS;
@@ -125,6 +153,7 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
           roundId: round.id,
           goal: study.goal,
           topic: { id: topic.id, name: topic.name },
+          difficulty,
           count: asked,
         });
         const record: UsageRecord = {
@@ -138,7 +167,7 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
         await usage.insert(record);
 
         const valid = output.questions
-          .map((raw) => toNewQuestion(topic.id, raw, randomUUID, shuffle))
+          .map((raw) => toNewQuestion(topic.id, raw, difficulty, randomUUID, shuffle))
           .filter((q) => q !== null)
           .slice(0, asked);
 
@@ -150,27 +179,40 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
     }
 
     const all = await rounds.listQuestions(round.id);
-    const byTopic = chosen.map((t) => all.filter((q) => q.topicId === t.id).map((q) => q.id));
+    const byTopic = plan.map(({ topicId }) => topicId).map((id) => all.filter((q) => q.topicId === id).map((q) => q.id));
     await rounds.markReady(round.id, interleave(byTopic));
   }
 
   return {
     /** Queues the generation of a Round. It only becomes ready when every requested Question exists. */
-    async createRound(studyId: string, settings: RoundSettings): Promise<Round> {
-      const count = validateRoundCount(settings.count);
+    async createRound(studyId: string, roundSettings: RoundSettings): Promise<Round> {
+      const count = validateRoundCount(roundSettings.count);
       if (!(await studies.findById(studyId))) throw new DomainError("STUDY_NOT_FOUND");
 
       const active = await topics.findActiveByStudy(studyId);
       if (active.length === 0) throw new DomainError("NO_ACTIVE_TOPICS");
-      const requested = settings.topicIds?.length ? settings.topicIds : null;
+      const requested = roundSettings.topicIds?.length ? roundSettings.topicIds : null;
       if (requested && !requested.every((id) => active.some((t) => t.id === id))) {
         throw new DomainError("TOPIC_NOT_IN_STUDY");
       }
 
-      const created = await rounds.insert(studyId, { count, mode: settings.mode ?? "study", topicIds: requested });
+      const candidates = requested ? active.filter((t) => requested.includes(t.id)) : active;
+      const measured = await measureTopics(studyId, candidates);
+      const allocation = allocateQuestions(count, measured, random, settings);
+      const plan: RoundPlan = measured.flatMap((m, i) =>
+        allocation[i] > 0 ? [{ topicId: m.topicId, count: allocation[i], difficulty: difficultyFor(m.performance, settings) }] : [],
+      );
+
+      const created = await rounds.insert(studyId, { count, mode: roundSettings.mode ?? "study", topicIds: requested, plan });
       const jobId = await queue.enqueue(created.id);
       await rounds.setJobId(created.id, jobId);
       return toRound({ ...created, jobId });
+    },
+
+    /** The active Topics of a Study with their Desempenho, never-asked first, then weakest to strongest. */
+    async listTopicPerformance(studyId: string): Promise<TopicPerformance[]> {
+      if (!(await studies.findById(studyId))) throw new DomainError("STUDY_NOT_FOUND");
+      return sortWeakestFirst(await measureTopics(studyId, await topics.findActiveByStudy(studyId)));
     },
 
     async getRound(roundId: string): Promise<Round> {

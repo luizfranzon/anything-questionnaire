@@ -1,3 +1,4 @@
+import type { Difficulty } from "./performance";
 import type { AnswerOutcome, Confidence } from "./round";
 
 export type QuestionFormat = "multiple-choice" | "open";
@@ -18,6 +19,7 @@ export interface GeneratedQuestion {
 
 export interface NewQuestion {
   topicId: string;
+  difficulty: Difficulty;
   format: QuestionFormat;
   prompt: string;
   alternatives: Alternative[];
@@ -32,6 +34,7 @@ export const MAX_ALTERNATIVES = 6;
 export function toNewQuestion(
   topicId: string,
   raw: GeneratedQuestion,
+  difficulty: Difficulty,
   newId: () => string,
   shuffle: <T>(items: T[]) => T[],
 ): NewQuestion | null {
@@ -45,7 +48,7 @@ export function toNewQuestion(
 
   const withIds = alternatives.map((a) => ({ id: newId(), text: a.text!, explanation: a.explanation! }));
   const answerKey = withIds[raw.correctIndex].id;
-  return { topicId, format: "multiple-choice", prompt, alternatives: shuffle(withIds), answerKey };
+  return { topicId, difficulty, format: "multiple-choice", prompt, alternatives: shuffle(withIds), answerKey };
 }
 
 /** The Question as presented to the user: no Gabarito, no Explicação. */

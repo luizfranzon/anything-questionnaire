@@ -65,6 +65,7 @@ export interface StudyPageScreenProps {
   /** Quando há Rodada em andamento e a pessoa clica em "Continuar". */
   resuming?: boolean;
   onRetry?: () => void;
+  onNewRound?: () => void;
 }
 
 const PAGE_SIZE = 20;
@@ -88,6 +89,7 @@ export function StudyPageScreen({
   initialFilters = emptyBankFilters,
   resuming,
   onRetry,
+  onNewRound,
 }: StudyPageScreenProps) {
   const [tab, setTab] = useState<StudyTabId>(initialTab);
   const [filters, setFilters] = useState(initialFilters);
@@ -323,7 +325,7 @@ export function StudyPageScreen({
             <Button variant="secondary" icon={<Pencil size={18} aria-hidden />}>
               Editar
             </Button>
-            <Button icon={<Plus size={18} aria-hidden />} disabled={noTopics}>
+            <Button icon={<Plus size={18} aria-hidden />} disabled={noTopics} onClick={onNewRound}>
               Nova Rodada
             </Button>
           </>

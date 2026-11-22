@@ -11,14 +11,15 @@ const toStored = (row: typeof rounds.$inferSelect): StoredRound => ({
   mode: row.mode,
   count: row.count,
   topicIds: row.topicIds,
+  plan: row.plan,
   status: row.status,
   jobId: row.jobId,
 });
 
 export function createDrizzleRoundRepository(db: PostgresJsDatabase): RoundRepository {
   return {
-    async insert(studyId, { count, mode, topicIds }) {
-      const [row] = await db.insert(rounds).values({ studyId, count, mode, topicIds }).returning();
+    async insert(studyId, { count, mode, topicIds, plan }) {
+      const [row] = await db.insert(rounds).values({ studyId, count, mode, topicIds, plan }).returning();
       return toStored(row);
     },
 
@@ -104,6 +105,20 @@ export function createDrizzleRoundRepository(db: PostgresJsDatabase): RoundRepos
         .from(answers)
         .where(eq(answers.roundId, roundId))
         .orderBy(asc(answers.answeredAt));
+    },
+
+    async listAnswerHistory(studyId) {
+      if (!UUID_PATTERN.test(studyId)) return [];
+      return db
+        .select({
+          topicId: questions.topicId,
+          outcome: answers.outcome,
+          confidence: answers.confidence,
+          answeredAt: answers.answeredAt,
+        })
+        .from(answers)
+        .innerJoin(questions, eq(questions.id, answers.questionId))
+        .where(eq(questions.studyId, studyId));
     },
   };
 }

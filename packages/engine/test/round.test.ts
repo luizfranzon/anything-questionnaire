@@ -44,20 +44,19 @@ describe("Round generation", () => {
     expect(await ctx.engine.getRound(created.id)).toMatchObject({ phase: "ready", count: 4, generated: 4 });
   });
 
-  it("distributes the Questions equally among the active Topics", async () => {
+  it("gives every never-asked Topic a Question when the Round has room for them", async () => {
     const { study, topics } = await studyWithTopics(["IAM", "VPC", "S3"]);
     const round = await ctx.engine.createRound(study.id, { count: 7 });
     await ctx.engine.drainJobs();
 
     const perTopic = new Map<string, number>();
     for (let i = 0; i < 7; i++) {
-      const next = await ctx.engine.getNextQuestion(round.id);
-      const q = next!.question;
+      const q = (await ctx.engine.getNextQuestion(round.id))!.question;
       perTopic.set(q.topic, (perTopic.get(q.topic) ?? 0) + 1);
       await ctx.engine.answerQuestion(round.id, q.id, { choice: null });
     }
-    const counts = topics.map((t) => perTopic.get(t.name));
-    expect(counts.sort()).toEqual([2, 2, 3]);
+    expect(topics.every((t) => (perTopic.get(t.name) ?? 0) >= 1)).toBe(true);
+    expect([...perTopic.values()].reduce((a, b) => a + b, 0)).toBe(7);
   });
 
   it("restricts the Round to the chosen Topics", async () => {

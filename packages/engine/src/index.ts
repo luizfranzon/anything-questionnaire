@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import type { ClaudeGateway } from "./application/ports/claude-gateway";
+import type { Random } from "./domain/performance";
 import { systemClock, type Clock } from "./application/ports/clock";
 import { createRoundUseCases } from "./application/use-cases/round-use-cases";
 import { createStudyUseCases } from "./application/use-cases/study-use-cases";
@@ -44,6 +45,13 @@ export type {
   PresentedQuestion,
   RoundResult,
 } from "./domain/question";
+export {
+  PERFORMANCE_DEFAULTS,
+  type Difficulty,
+  type Random,
+  type Trend,
+  type TopicPerformance,
+} from "./domain/performance";
 export type { Stage, TokenUsage, UsageRecord } from "./domain/usage";
 export type { ClaudeGateway } from "./application/ports/claude-gateway";
 export type { Clock } from "./application/ports/clock";
@@ -60,6 +68,8 @@ export interface EngineOptions {
   /** Replaces the Claude gateway (tests pass the fake). */
   claude?: ClaudeGateway;
   clock?: Clock;
+  /** Randomness for drawing Topics (`[0, 1)`). Tests pass a controllable one. */
+  random?: Random;
   queue?: Partial<QueueOptions>;
 }
 
@@ -95,6 +105,7 @@ export async function createEngine(options: EngineOptions) {
     queue: await queues.queue("round-generation"),
     claude,
     clock,
+    random: options.random,
   });
   await Promise.all([topicProposals.startWorker(), roundUseCases.startWorker()]);
 

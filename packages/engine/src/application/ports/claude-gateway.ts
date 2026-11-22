@@ -1,4 +1,5 @@
 import type { GeneratedQuestion } from "../../domain/question";
+import type { Difficulty } from "../../domain/performance";
 import type { TokenUsage } from "../../domain/usage";
 
 export interface StageResult<T> {
@@ -17,6 +18,7 @@ export interface GenerateQuestionsRequest {
   roundId: string;
   goal: string;
   topic: { id: string; name: string };
+  difficulty: Difficulty;
   /** How many Questions to write. Claude may return fewer or more; the engine copes. */
   count: number;
 }

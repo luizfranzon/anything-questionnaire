@@ -15,7 +15,7 @@ function StudiesRoute() {
     <StudyListScreen
       studies={studies.map((s) => ({ ...s, topicCount: 0, sourceCount: 0 }))}
       onCreate={() => navigate({ to: "/studies/new" })}
-      onOpen={(id) => navigate({ to: "/studies/$studyId/rounds/new", params: { studyId: id } })}
+      onOpen={(id) => navigate({ to: "/studies/$studyId", params: { studyId: id } })}
       onEdit={(id) => navigate({ to: "/studies/$studyId/edit", params: { studyId: id } })}
       onDelete={async (id) => {
         await deleteStudy({ data: id });

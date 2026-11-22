@@ -1,0 +1,43 @@
+import type { Topic } from "../../domain/topic";
+import type { UsageRecord } from "../../domain/usage";
+
+export interface StoredProposal {
+  id: string;
+  studyId: string;
+  jobId: string | null;
+  /** `null` until Claude answered. */
+  topics: string[] | null;
+}
+
+export interface ProposalRepository {
+  /** Creates a pending proposal (no job yet). */
+  insert(studyId: string): Promise<StoredProposal>;
+  findByStudy(studyId: string): Promise<StoredProposal | null>;
+  findById(id: string): Promise<StoredProposal | null>;
+  setJobId(id: string, jobId: string): Promise<void>;
+  setTopics(id: string, topics: string[]): Promise<void>;
+  delete(id: string): Promise<void>;
+  /** Atomically stores the approved Topics in the Study and removes the proposal. */
+  approve(proposal: StoredProposal, names: string[]): Promise<Topic[]>;
+}
+
+export interface TopicRepository {
+  findActiveByStudy(studyId: string): Promise<Topic[]>;
+}
+
+export interface UsageRepository {
+  insert(record: UsageRecord): Promise<void>;
+  find(filter: { studyId?: string }): Promise<UsageRecord[]>;
+}
+
+export type JobPhase = "queued" | "running" | "retrying" | "completed" | "failed";
+
+/** Persistent background queue for proposal jobs. */
+export interface ProposalQueue {
+  enqueue(proposalId: string): Promise<string>;
+  phaseOf(jobId: string): Promise<JobPhase>;
+  /** Registers the worker. Failures thrown by the handler are retried automatically. */
+  work(handler: (proposalId: string) => Promise<void>): Promise<void>;
+  /** Runs every ready job (and retries) to completion. */
+  drain(): Promise<void>;
+}

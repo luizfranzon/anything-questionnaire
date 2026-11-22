@@ -4,12 +4,12 @@
 
 **Blocked by:** 01 (Esqueleto e Estudos).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] O motor tem uma porta de gateway do Claude com uma operação por Etapa. O adaptador real usa a Messages API com saída estruturada (sem forçar o uso de ferramenta nem prefill)
-- [ ] O adaptador falso permite roteirizar respostas e simular erro de sobrecarga
-- [ ] Pedir a proposta enfileira um trabalho no pg-boss. Falhas passageiras são tentadas de novo automaticamente, e o status do trabalho é consultável
-- [ ] A tela mostra o progresso enquanto a proposta é gerada e continua funcionando se o usuário fechar e reabrir a aba
-- [ ] O usuário edita a proposta e aprova. Só os Tópicos aprovados ficam no Estudo
-- [ ] Cada chamada ao Claude grava um registro de consumo com Etapa, modelo, Estudo, tokens de entrada, de saída, lidos do cache e gravados no cache, e data
-- [ ] Testes pela interface do motor (com o gateway falso) cobrem a proposta, a aprovação com edições, a nova tentativa após falha e o registro de consumo
+- [x] O motor tem uma porta de gateway do Claude com uma operação por Etapa. O adaptador real usa a Messages API com saída estruturada (sem forçar o uso de ferramenta nem prefill)
+- [x] O adaptador falso permite roteirizar respostas e simular erro de sobrecarga
+- [x] Pedir a proposta enfileira um trabalho no pg-boss. Falhas passageiras são tentadas de novo automaticamente, e o status do trabalho é consultável
+- [x] A tela mostra o progresso enquanto a proposta é gerada e continua funcionando se o usuário fechar e reabrir a aba
+- [x] O usuário edita a proposta e aprova. Só os Tópicos aprovados ficam no Estudo
+- [x] Cada chamada ao Claude grava um registro de consumo com Etapa, modelo, Estudo, tokens de entrada, de saída, lidos do cache e gravados no cache, e data
+- [x] Testes pela interface do motor (com o gateway falso) cobrem a proposta, a aprovação com edições, a nova tentativa após falha e o registro de consumo

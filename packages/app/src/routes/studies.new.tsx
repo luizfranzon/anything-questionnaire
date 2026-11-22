@@ -26,7 +26,7 @@ function NewStudyRoute() {
             setSaving(false);
             return;
           }
-          await navigate({ to: "/studies" });
+          await navigate({ to: "/studies/$studyId/topics", params: { studyId: result.data.id } });
         } catch {
           setSaveError(GENERIC_SAVE_ERROR);
           setSaving(false);

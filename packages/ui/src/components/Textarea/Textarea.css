@@ -1,0 +1,11 @@
+/* Textarea — usa a caixa de Field; só define a altura.
+   field-sizing faz o navegador crescer o campo com o conteúdo (Chrome, Edge, Safari 26+).
+   Sem suporte, o Textarea.tsx ajusta a altura por JavaScript. */
+.textarea__input {
+  display: block;
+  resize: none;
+  overflow-y: auto;
+  field-sizing: content;
+  min-height: calc(var(--min-rows) * var(--leading-body) + 2 * var(--space-3));
+  max-height: calc(var(--max-rows) * var(--leading-body) + 2 * var(--space-3));
+}

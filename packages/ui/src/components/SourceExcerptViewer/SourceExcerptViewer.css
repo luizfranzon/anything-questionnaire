@@ -1,0 +1,79 @@
+/* SourceExcerptViewer — só tokens por papel. O contêiner é o Dialog. */
+.excerpt__source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  color: var(--color-text-muted);
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.excerpt__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+}
+.excerpt__kind {
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-fill-1);
+  color: var(--color-text);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+}
+.excerpt__location {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* O Trecho: texto de leitura, rolável quando longo. Mantém quebras de linha da Fonte. */
+.excerpt__text {
+  margin: 0;
+  box-sizing: border-box;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-card);
+  background: var(--color-fill-1);
+  color: var(--color-text);
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.excerpt__text:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.excerpt__text--skeleton {
+  /* Mesma altura mínima do Trecho carregado: o diálogo não pula */
+  min-height: 180px;
+}
+
+/* Erro e Trecho removido */
+.excerpt__notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  border: 2px dashed var(--color-divider);
+  border-radius: var(--radius-card);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+.excerpt__notice--danger svg:first-child {
+  color: var(--color-danger);
+}
+.excerpt__notice .btn {
+  margin-top: var(--space-2);
+}
+.excerpt__notice-title {
+  margin: 0;
+  color: var(--color-text);
+  font: 400 var(--text-lead) / var(--leading-lead) var(--font-serif);
+}
+.excerpt__notice-text {
+  margin: 0;
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}

@@ -1,0 +1,55 @@
+/* Badge — só tokens por papel. Não interativo: sem hover, foco ou pressionado. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 24px;
+  box-sizing: border-box;
+  padding: 0 var(--space-3) 0 var(--space-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-pill);
+  font: 600 var(--text-caption) / 1 var(--font-sans);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+/* Sem ícone: o respiro da esquerda iguala o da direita */
+.badge:not(:has(.badge__icon, .badge__spinner)) {
+  padding-left: var(--space-3);
+}
+.badge__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.badge__spinner {
+  flex: none;
+  animation: badge-spin 900ms linear infinite;
+}
+@keyframes badge-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tons */
+.badge--neutral {
+  background: var(--color-fill-1);
+  color: var(--color-text);
+}
+.badge--info {
+  background: var(--color-surface);
+  border-color: var(--color-border-hover);
+  color: var(--color-dark);
+}
+.badge--success {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+.badge--danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+.badge--warn {
+  background: var(--color-warn-bg);
+  color: var(--color-warn-text);
+}

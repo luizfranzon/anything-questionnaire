@@ -1,0 +1,122 @@
+/* TopicProposalEditor — só tokens por papel. */
+.tpe {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--width-reading);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.tpe__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.tpe__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: var(--space-4);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 2px solid var(--color-divider);
+}
+.tpe__row:last-child {
+  border-bottom: 0;
+}
+.tpe__row--archived .tpe__check {
+  color: var(--color-text-muted);
+}
+.tpe__check {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tpe__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  white-space: nowrap;
+}
+.tpe__actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* Edição do nome no lugar */
+.tpe__edit {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+.tpe__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-1) 0 0;
+  color: var(--color-danger-text);
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.tpe__edit .tpe__error {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.tpe__error svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Juntar: o overflow é controlado pela animação em TopicProposalEditor.tsx */
+.tpe__merge-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 2px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-fill-1);
+}
+.tpe__merge-text {
+  margin: 0;
+  font: 600 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.tpe__merge-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* Adicionar */
+.tpe__add {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.tpe__add-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.tpe__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-2);
+}
+
+.tpe__skel-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}

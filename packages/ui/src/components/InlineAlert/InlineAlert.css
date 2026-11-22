@@ -1,0 +1,71 @@
+/* InlineAlert — só tokens por papel. Sem sombra: não flutua. */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  font-family: var(--font-sans);
+}
+.alert__icon {
+  flex: none;
+  margin-top: 3px;
+}
+.alert__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.alert__title {
+  margin: 0;
+  font: 600 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.alert__text {
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.alert__title + .alert__text {
+  margin-top: 0;
+}
+/* Sem título, o texto vira o corpo principal */
+.alert__body > .alert__text:first-child {
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.alert__text ul {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-5);
+}
+.alert__action {
+  margin-top: var(--space-2);
+}
+.alert__action .btn--link {
+  color: inherit;
+  font-size: var(--text-small);
+}
+.alert__close {
+  margin: -6px -6px -6px 0;
+  color: inherit;
+}
+
+.alert--info {
+  background: var(--color-fill-1);
+  color: var(--color-text);
+}
+.alert--info .alert__icon {
+  color: var(--color-dark);
+}
+.alert--success {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+.alert--warn {
+  background: var(--color-warn-bg);
+  color: var(--color-warn-text);
+}
+.alert--danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}

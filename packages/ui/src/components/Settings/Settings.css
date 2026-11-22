@@ -1,0 +1,174 @@
+/* Configurações (modelo por Etapa, preços, parâmetros) — só tokens por papel. */
+
+/* ---- StageModelSelect e ParameterField ---- */
+.stagemodel,
+.param {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  max-width: var(--width-sheet);
+  font-family: var(--font-sans);
+}
+.stagemodel__foot,
+.param__foot {
+  display: flex;
+  align-items: center;
+  min-height: 32px; /* reserva a linha: o "Restaurar" não empurra o que vem abaixo */
+}
+.stagemodel__default,
+.param__default {
+  color: var(--color-text-muted);
+  font: 400 var(--text-caption) / var(--leading-caption) var(--font-sans);
+}
+.param__range {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- PriceTable ---- */
+.prices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: var(--width-content);
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+.prices__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 var(--space-2);
+  table-layout: fixed;
+}
+.prices__caption {
+  caption-side: top;
+  padding-bottom: var(--space-1);
+  text-align: left;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.prices__model-head,
+.prices__model {
+  width: 140px;
+}
+.prices__model-head,
+.prices__num-head {
+  padding: 0 var(--space-3) var(--space-1);
+  color: var(--color-text-muted);
+  font: 600 var(--text-caption) / var(--leading-caption) var(--font-sans);
+  text-align: left;
+}
+.prices__num-head {
+  text-align: right;
+}
+.prices__model {
+  padding: 0 var(--space-4);
+  text-align: left;
+  font: 600 var(--text-body) / var(--leading-body) var(--font-sans);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prices__cell {
+  padding: var(--space-2) var(--space-2);
+}
+/* Cada linha é um cartão de borda fina; a primeira e a última célula arredondam */
+.prices__row > * {
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-divider);
+  border-bottom: 2px solid var(--color-divider);
+  transition: border-color var(--duration-quick) var(--ease);
+}
+.prices__row > :first-child {
+  border-left: 2px solid var(--color-divider);
+  border-radius: var(--radius-card) 0 0 var(--radius-card);
+}
+.prices__row > :last-child {
+  border-right: 2px solid var(--color-divider);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+}
+.prices__row:hover > *,
+.prices__row:focus-within > * {
+  border-color: var(--color-border-hover);
+}
+/* Mais específico que as células de ponta (:first-child/:last-child), senão as laterais ficam cinza */
+.prices__row.prices__row--error > *,
+.prices__row.prices__row--error:hover > *,
+.prices__row.prices__row--error:focus-within > * {
+  border-color: var(--color-danger);
+}
+
+.pricecell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  cursor: text;
+  transition: border-color var(--duration-quick) var(--ease);
+}
+.pricecell:hover:not(.pricecell--inert) {
+  border-color: var(--color-border-hover);
+}
+.pricecell:has(.pricecell__input:focus) {
+  border-color: var(--color-border-hover);
+}
+.pricecell:has(.pricecell__input:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.pricecell--invalid,
+.pricecell--invalid:hover:not(.pricecell--inert) {
+  border-color: var(--color-danger);
+}
+.pricecell--inert {
+  border-color: var(--color-divider);
+  background: var(--color-background);
+  cursor: default;
+}
+.pricecell__prefix {
+  flex: none;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.pricecell__input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: right;
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.pricecell__input:read-only {
+  cursor: default;
+}
+
+.prices__errors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.prices__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--color-danger-text);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.prices__error svg {
+  flex: none;
+  margin-top: 2px;
+}

@@ -1,0 +1,164 @@
+/* FileDropzone — só tokens por papel. [data-state] existe para a matriz de estados do Storybook. */
+.dropzone-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  padding: var(--space-6) var(--space-5);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--duration-quick) var(--ease), background-color var(--duration-quick) var(--ease);
+}
+/* Campo nativo escondido, mas ainda focável pelo teclado */
+.dropzone__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dropzone__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--color-fill-1);
+  color: var(--color-dark);
+  transition: background-color var(--duration-quick) var(--ease);
+}
+.dropzone__call {
+  font: 600 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.dropzone__pick {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  color: var(--color-dark);
+}
+.dropzone__hint {
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+
+/* Hover: só a borda escurece */
+.dropzone:hover:not(.dropzone--disabled),
+.dropzone[data-state="hover"] {
+  border-color: var(--color-border-hover);
+}
+.dropzone:hover:not(.dropzone--disabled) .dropzone__pick,
+.dropzone[data-state="hover"] .dropzone__pick {
+  text-decoration-thickness: 3px;
+}
+
+/* Foco: só pelo teclado */
+.dropzone:has(.dropzone__input:focus-visible),
+.dropzone[data-state="focus"] {
+  border-color: var(--color-border-hover);
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* Arrastando por cima: contorno sólido forest e fundo fill-1 */
+.dropzone--over {
+  border-style: solid;
+  border-color: var(--color-border-hover);
+  background: var(--color-fill-1);
+}
+.dropzone--over .dropzone__icon {
+  background: var(--color-surface);
+}
+
+.dropzone--disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Lista de envios: itens separados por um espaço, nunca encostados */
+.dropzone__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--color-fill-2);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.file--error {
+  border-color: var(--color-danger);
+}
+.file__type {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--color-fill-1);
+  color: var(--color-dark);
+}
+.file__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.file__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.file__meta {
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+.file__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--color-danger-text);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.file__error svg {
+  flex: none;
+  margin-top: 2px;
+}
+.file__side {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.file__side .btn--link {
+  font-size: var(--text-small);
+}

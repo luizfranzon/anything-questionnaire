@@ -1,0 +1,143 @@
+/* Button — só tokens por papel. [data-state] existe para a matriz de estados do Storybook. */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: var(--space-3) var(--space-5);
+  font: 600 var(--text-body) / 1 var(--font-sans);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--ease), box-shadow var(--duration-quick) var(--ease);
+}
+
+/* Primário: pílula menta */
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.btn--primary:hover,
+.btn--primary[data-state="hover"] {
+  background: var(--color-primary-hover);
+}
+.btn--primary:active,
+.btn--primary[data-state="pressed"] {
+  background: var(--color-primary-pressed);
+}
+
+/* Secundário: contorno */
+.btn--secondary {
+  background: transparent;
+  color: var(--color-dark);
+  box-shadow: inset 0 0 0 2px var(--color-dark);
+}
+.btn--secondary:hover,
+.btn--secondary[data-state="hover"] {
+  background: var(--color-fill-1);
+}
+.btn--secondary:active,
+.btn--secondary[data-state="pressed"] {
+  background: var(--color-fill-2);
+}
+
+/* Destrutivo */
+.btn--destructive {
+  background: var(--color-danger);
+  color: var(--color-on-dark);
+}
+.btn--destructive:hover,
+.btn--destructive[data-state="hover"] {
+  background: var(--color-danger-text);
+}
+.btn--destructive:active,
+.btn--destructive[data-state="pressed"] {
+  background: color-mix(in srgb, var(--color-danger-text), black 18%);
+}
+
+/* Link: sem fundo, o hover engrossa o sublinhado */
+.btn--link {
+  background: none;
+  padding: var(--space-1) 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-dark);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+.btn--link:hover,
+.btn--link[data-state="hover"] {
+  text-decoration-thickness: 3px;
+}
+.btn--link:active,
+.btn--link[data-state="pressed"] {
+  color: var(--color-text-muted);
+}
+
+/* Sobre o painel escuro */
+.btn--secondary.btn--on-dark {
+  color: var(--color-on-dark);
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+.btn--secondary.btn--on-dark:hover,
+.btn--secondary.btn--on-dark[data-state="hover"] {
+  background: color-mix(in srgb, var(--color-on-dark), transparent 90%);
+}
+.btn--secondary.btn--on-dark:active,
+.btn--secondary.btn--on-dark[data-state="pressed"] {
+  background: color-mix(in srgb, var(--color-on-dark), transparent 80%);
+}
+.btn--link.btn--on-dark {
+  color: var(--color-primary);
+}
+.btn--link.btn--on-dark:active,
+.btn--link.btn--on-dark[data-state="pressed"] {
+  color: var(--color-on-dark-muted);
+}
+.btn--on-dark:focus-visible,
+.btn--on-dark[data-state="focus"] {
+  outline-color: var(--color-primary);
+}
+
+/* Foco (teclado) */
+.btn[data-state="focus"] {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.btn--on-dark[data-state="focus"] {
+  outline-color: var(--color-primary);
+}
+
+/* Desabilitado */
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Carregando: mantém o tamanho exato; o rótulo fica invisível sob o spinner */
+.btn[aria-busy="true"] {
+  cursor: progress;
+  pointer-events: none;
+}
+.btn__spinner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.btn__spinner svg {
+  animation: btn-spin 900ms linear infinite;
+}
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn__content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}

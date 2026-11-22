@@ -1,0 +1,104 @@
+/* Tokens por papel. Componentes usam só estes nomes, nunca o valor. */
+:root {
+  /* Texto */
+  --color-text: #1d2a22;
+  --color-text-muted: #5d6b62;
+  --color-text-placeholder: #7d8a81;
+  --color-text-disabled: #9aa59d;
+  --color-on-dark: #f6f7f2;
+  --color-on-dark-muted: #b9cdbd;
+
+  /* Superfícies */
+  --color-background: #f6f7f2;
+  --color-surface: #ffffff;
+  --color-fill-1: #e6ecdf;
+  --color-fill-2: #d3dec8;
+  --color-dark: #0f4a2c;
+
+  /* Linhas */
+  --color-border: #1d2a22;
+  --color-border-hover: #0f4a2c;
+  --color-divider: #e6ecdf;
+
+  /* Ação primária: menta com texto forest */
+  --color-primary: #7cd3a0;
+  --color-primary-hover: #6bc592;
+  --color-primary-pressed: #59b582;
+  --color-on-primary: #0f4a2c;
+
+  /* Foco e overlay */
+  --color-focus: #0f4a2c;
+  --color-overlay: #1d2a2266;
+
+  /* Status */
+  --color-success: #0f4a2c;
+  --color-success-bg: #dcf3e5;
+  --color-success-text: #0f4a2c;
+  --color-danger: #a8344f;
+  --color-danger-bg: #f7e4e8;
+  --color-danger-text: #8a2a40;
+  --color-warn: #9a6a12;
+  --color-warn-bg: #f7edd2;
+  --color-warn-text: #6b4a0b;
+
+  /* Gráficos: cinco séries categóricas em ordem fixa, validadas (daltonismo e contraste ≥ 3:1 sobre branco).
+     A cor segue a Etapa, nunca a posição na lista filtrada. */
+  --color-chart-1: #1f7a4c;
+  --color-chart-2: #c0881a;
+  --color-chart-3: #3f7fb0;
+  --color-chart-4: #c0603a;
+  --color-chart-5: #7a62b8;
+  --color-chart-grid: #e6ecdf;
+
+  /* Tipografia */
+  --font-serif: "Young Serif", Georgia, serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
+  --text-hero: 64px;
+  --leading-hero: 72px;
+  --text-display: 40px;
+  --leading-display: 48px;
+  --text-prompt: 30px;
+  --leading-prompt: 40px;
+  --text-title: 26px;
+  --leading-title: 32px;
+  --text-lead: 21px;
+  --leading-lead: 30px;
+  --text-body: 17px;
+  --leading-body: 26px;
+  --text-small: 14px;
+  --leading-small: 20px;
+  --text-caption: 13px;
+  --leading-caption: 18px;
+
+  /* Espaçamento (base 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Raios */
+  --radius-sm: 6px;
+  --radius-card: 12px;
+  --radius-block: 28px;
+  --radius-pill: 999px;
+
+  /* Sombras: só para o que flutua */
+  --shadow-float: 0 4px 16px #1d2a2214;
+  --shadow-float-strong: 0 12px 40px #1d2a2229;
+
+  /* Layout (desktop) */
+  --width-reading: 640px;
+  --width-content: 960px;
+  --width-wide: 1200px;
+  --width-sheet: 460px;
+
+  /* Movimento */
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-medium: 350ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}

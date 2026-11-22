@@ -1,0 +1,80 @@
+/* Toast — só tokens por papel. Flutua, então leva sombra forte e borda de 2px como os cartões. */
+.toast-viewport {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.toast-item {
+  pointer-events: auto;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  width: var(--width-sheet);
+  max-width: calc(100vw - var(--space-6));
+  padding: var(--space-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float-strong);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+.toast__icon {
+  flex: none;
+  margin-top: 3px;
+}
+.toast__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.toast__title {
+  margin: 0;
+  font: 600 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.toast__description {
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.toast__action {
+  margin-top: var(--space-2);
+}
+.toast__action .btn--link {
+  font-size: var(--text-small);
+}
+.toast__close {
+  margin: -6px -6px -6px 0;
+}
+
+.toast--info .toast__icon,
+.toast--success .toast__icon {
+  color: var(--color-dark);
+}
+.toast--warn {
+  border-color: var(--color-warn);
+}
+.toast--warn .toast__icon {
+  color: var(--color-warn);
+}
+.toast--danger {
+  border-color: var(--color-danger);
+}
+.toast--danger .toast__icon {
+  color: var(--color-danger);
+}

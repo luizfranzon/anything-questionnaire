@@ -1,0 +1,32 @@
+/* SourceAddForm — só tokens por papel. */
+.saf {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--width-reading);
+  padding: var(--space-5);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+/* Recolhido: só o botão, sem cartão */
+.saf--closed {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.saf__title {
+  margin: 0 0 var(--space-4);
+  font: 400 var(--text-title) / var(--leading-title) var(--font-serif);
+}
+.saf__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.saf__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}

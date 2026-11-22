@@ -1,0 +1,246 @@
+/* CorrectionPanel — painel forest de correção. Só tokens por papel. */
+.cpanel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  background: var(--color-dark);
+  color: var(--color-on-dark);
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+
+.cpanel__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.cpanel__result-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  height: var(--leading-title);
+  color: var(--color-primary);
+}
+/* Erro, "Não sei" e anulada: o ícone muda, a cor do painel não. Nada de berry em fundo forest. */
+.cpanel--wrong .cpanel__result-icon,
+.cpanel--dontknow .cpanel__result-icon,
+.cpanel--voided .cpanel__result-icon {
+  color: var(--color-on-dark);
+}
+.cpanel__heading {
+  min-width: 0;
+}
+.cpanel__title {
+  margin: 0;
+  font: 400 var(--text-title) / var(--leading-title) var(--font-serif);
+}
+.cpanel__title:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+.cpanel__subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--color-on-dark-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+
+/* Aviso de divergência: faixa clara ocre, legível sobre forest */
+.cpanel__divergence {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-warn-bg);
+  color: var(--color-warn-text);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.cpanel__divergence > svg {
+  flex: none;
+}
+.cpanel__divergence > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cpanel__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.cpanel__label {
+  margin: 0;
+  color: var(--color-on-dark-muted);
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.cpanel__label--spaced {
+  margin-top: var(--space-2);
+}
+.cpanel__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cpanel__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.cpanel__chip {
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--color-on-dark-muted);
+  border-radius: var(--radius-pill);
+  color: var(--color-on-dark);
+  font: 700 var(--text-small) / 1 var(--font-sans);
+}
+.cpanel__item[data-correct] .cpanel__chip {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.cpanel__item-body {
+  min-width: 0;
+  flex: 1;
+}
+.cpanel__item-state {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--color-on-dark-muted);
+  font: 600 var(--text-caption) / var(--leading-caption) var(--font-sans);
+}
+.cpanel__item[data-correct] .cpanel__item-state,
+.cpanel__item[data-picked] .cpanel__item-state {
+  color: var(--color-on-dark);
+}
+.cpanel__item-why {
+  margin-top: var(--space-1);
+  overflow-wrap: anywhere;
+}
+.cpanel__item-why code {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.85em;
+}
+.cpanel__item:not([data-correct]) .cpanel__item-why {
+  color: var(--color-on-dark-muted);
+}
+
+/* Origem */
+.cpanel__origin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-on-dark), transparent 80%);
+}
+.cpanel__general {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-on-dark);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.cpanel__refs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+.cpanel__refs li {
+  max-width: 100%;
+  min-width: 0;
+}
+.cpanel__ref {
+  max-width: 100%;
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+.cpanel__ref .btn__content {
+  min-width: 0;
+  max-width: 100%;
+}
+.cpanel__ref .btn__content > svg {
+  flex: none;
+}
+.cpanel__ref-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cpanel__ref-loc {
+  flex: none;
+  color: var(--color-on-dark-muted);
+}
+.cpanel__ref-loc::before {
+  content: "·";
+  margin-right: var(--space-2);
+}
+
+/* Confiança fica dentro do painel, em versão onDark */
+.cpanel__confidence {
+  padding-top: var(--space-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-on-dark), transparent 80%);
+}
+
+.cpanel__justification {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-on-dark), transparent 90%);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  overflow-wrap: anywhere;
+}
+
+/* Ações: altura fixa, "Próxima" sempre à direita */
+.cpanel__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 48px;
+}
+.cpanel__contest-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  color: var(--color-on-dark);
+  font: 500 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.cpanel__contest-status > svg {
+  flex: none;
+}
+.cpanel__next {
+  margin-left: auto;
+  flex: none;
+}
+
+.cpanel__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

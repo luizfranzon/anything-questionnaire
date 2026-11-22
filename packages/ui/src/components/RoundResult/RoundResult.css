@@ -1,0 +1,140 @@
+/* RoundResult — só tokens por papel. */
+.rresult {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--width-reading);
+  box-sizing: border-box;
+  padding: var(--space-6);
+  border: 2px solid var(--color-divider);
+  border-radius: var(--radius-block);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.rresult__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.rresult__meta {
+  margin: 0;
+  min-height: var(--leading-small);
+  color: var(--color-text-muted);
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.rresult__title {
+  margin: 0;
+  font: 400 var(--text-title) / var(--leading-title) var(--font-serif);
+}
+
+/* O número */
+.rresult__score {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.rresult__figure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  margin: 0;
+}
+.rresult__figure-main {
+  color: var(--color-dark);
+  font: 400 var(--text-hero) / var(--leading-hero) var(--font-serif);
+}
+.rresult__figure-total {
+  color: var(--color-text-muted);
+  font-size: var(--text-display);
+}
+.rresult__percent {
+  color: var(--color-text-muted);
+  font: 400 var(--text-title) / var(--leading-title) var(--font-serif);
+  font-variant-numeric: tabular-nums;
+}
+.rresult__breakdown {
+  margin: 0;
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.rresult__note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+
+/* Por Tópico */
+.rresult__topics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 2px solid var(--color-divider);
+}
+.rresult__label {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.rresult__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rresult__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px 48px;
+  align-items: center;
+  gap: var(--space-4);
+}
+.rresult__topic {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.rresult__count {
+  text-align: right;
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ações: a primária (menta) à direita, como nos diálogos */
+.rresult__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+/* Carregando e erro */
+.rresult__skel-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.rresult__failure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) 0;
+  text-align: center;
+}
+.rresult__failure svg:first-child {
+  color: var(--color-danger);
+}
+.rresult__failure-title {
+  margin: 0;
+  font: 400 var(--text-title) / var(--leading-title) var(--font-serif);
+}
+.rresult__failure-text {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}

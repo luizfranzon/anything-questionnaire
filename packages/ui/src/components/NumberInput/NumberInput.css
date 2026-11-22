@@ -1,0 +1,40 @@
+/* NumberInput — usa a caixa de Field; botões − e + nas pontas. */
+.number {
+  padding: 0 var(--space-2);
+  cursor: default;
+}
+.number__input {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.number__unit {
+  flex: none;
+  margin-left: calc(-1 * var(--space-1));
+  color: var(--color-text-muted);
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+
+.number__step {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--ease);
+}
+.number__step:hover:not(:disabled) {
+  background: var(--color-fill-1);
+}
+.number__step:active:not(:disabled) {
+  background: var(--color-fill-2);
+}
+.number__step:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}

@@ -1,0 +1,40 @@
+/* Criação de Rodada — só tokens por papel. */
+.round-create {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.round-create__topics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.round-create__legend {
+  margin-bottom: var(--space-3);
+  padding: 0;
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.round-create__topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-left: var(--space-6);
+}
+.round-create__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.round-create__generation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.round-create__note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}

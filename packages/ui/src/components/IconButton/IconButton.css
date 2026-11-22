@@ -1,0 +1,48 @@
+/* IconButton — só tokens por papel. [data-state] existe para a matriz de estados do Storybook. */
+.icon-btn {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--ease), color var(--duration-quick) var(--ease);
+}
+.icon-btn:hover,
+.icon-btn[data-state="hover"] {
+  background: var(--color-fill-1);
+  color: var(--color-text);
+}
+.icon-btn:active,
+.icon-btn[data-state="pressed"],
+.icon-btn[aria-pressed="true"] {
+  background: var(--color-fill-2);
+  color: var(--color-text);
+}
+.icon-btn:focus-visible,
+.icon-btn[data-state="focus"] {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+.icon-btn--danger:hover,
+.icon-btn--danger[data-state="hover"] {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+.icon-btn--danger:active,
+.icon-btn--danger[data-state="pressed"] {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}

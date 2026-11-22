@@ -1,0 +1,6 @@
+/* Tela de Pergunta — só tokens por papel. */
+.question-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}

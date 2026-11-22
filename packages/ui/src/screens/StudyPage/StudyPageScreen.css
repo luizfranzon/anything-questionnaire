@@ -1,0 +1,28 @@
+/* Página do Estudo — só tokens por papel. */
+.study-page__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.study-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.study-page__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+/* Avisos e banner acima das abas */
+.study-page__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.study-page__stack:not(:empty) {
+  margin-bottom: var(--space-5);
+}

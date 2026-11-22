@@ -1,0 +1,34 @@
+/* TrendIndicator — só tokens por papel. */
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+  color: var(--color-text-muted);
+}
+.trend svg {
+  flex: none;
+}
+.trend__delta {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.trend__text--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.trend--up {
+  color: var(--color-success-text);
+}
+.trend--down {
+  color: var(--color-warn-text);
+}
+.trend--unknown {
+  color: var(--color-text-placeholder);
+}

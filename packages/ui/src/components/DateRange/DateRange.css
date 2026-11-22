@@ -1,0 +1,194 @@
+/* RangeCalendar e DateRangePicker — só tokens por papel. */
+
+/* ---- Calendário ---- */
+.rc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 308px; /* 7 colunas de 40px + respiro */
+  box-sizing: border-box;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+.rc__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.rc__title {
+  margin: 0;
+  font: 400 var(--text-lead) / var(--leading-lead) var(--font-serif);
+}
+.rc__grid {
+  display: flex;
+  flex-direction: column;
+}
+.rc__row {
+  display: grid;
+  grid-template-columns: repeat(7, 40px);
+  justify-content: center;
+}
+.rc__weekday {
+  display: grid;
+  place-items: center;
+  height: 32px;
+  color: var(--color-text-muted);
+  font: 600 var(--text-caption) / var(--leading-caption) var(--font-sans);
+}
+
+.rc__cell {
+  display: grid;
+  place-items: center;
+  height: 40px;
+}
+/* Faixa do período: fundo contínuo entre os dois extremos, arredondado nas pontas e nas bordas da semana */
+.rc__cell--band {
+  background: var(--color-fill-1);
+}
+.rc__cell--from,
+.rc__row > .rc__cell--band:first-child {
+  border-top-left-radius: var(--radius-pill);
+  border-bottom-left-radius: var(--radius-pill);
+}
+.rc__cell--to,
+.rc__row > .rc__cell--band:last-child {
+  border-top-right-radius: var(--radius-pill);
+  border-bottom-right-radius: var(--radius-pill);
+}
+
+.rc__day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--ease), border-color var(--duration-quick) var(--ease);
+}
+/* Hover: só a borda escurece (tinta para forest), como nos cartões */
+.rc__day:hover:not(:disabled):not(.rc__day--filled) {
+  border-color: var(--color-border-hover);
+}
+.rc__day:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+/* Hoje: ponto sob o número, nunca só cor */
+.rc__day--today::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: currentColor;
+}
+/* Extremo escolhido: círculo forest cheio */
+.rc__day--filled {
+  background: var(--color-dark);
+  border-color: var(--color-dark);
+  color: var(--color-on-dark);
+}
+/* Dia da prévia (segundo clique ainda não dado): só contorno */
+.rc__day--ghost {
+  border-color: var(--color-border-hover);
+}
+.rc__day:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+
+.rc__status {
+  min-height: var(--leading-small);
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ---- Campo com painel ---- */
+.drp {
+  position: relative;
+}
+.drp__trigger {
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.drp__range {
+  flex: none;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+.drp__panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  display: flex;
+  gap: var(--space-4);
+  box-sizing: border-box;
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-2);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float-strong);
+  transform-origin: top left;
+}
+.drp__presets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 176px;
+  margin: 0;
+  padding: 0 var(--space-3) 0 0;
+  list-style: none;
+  border-right: 2px solid var(--color-divider);
+}
+.drp__preset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--duration-quick) var(--ease), background-color var(--duration-quick) var(--ease);
+}
+.drp__preset:hover {
+  border-color: var(--color-border-hover);
+}
+.drp__preset--current {
+  background: var(--color-fill-1);
+}
+.drp__preset:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.drp__custom {
+  margin-top: var(--space-2);
+  padding: 0 var(--space-3);
+  color: var(--color-text-muted);
+  font: 400 var(--text-caption) / var(--leading-caption) var(--font-sans);
+}

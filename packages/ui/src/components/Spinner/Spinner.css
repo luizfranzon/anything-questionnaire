@@ -1,0 +1,27 @@
+/* Spinner — só tokens por papel. */
+.spinner {
+  display: inline-flex;
+  color: var(--color-dark);
+  line-height: 0;
+}
+.spinner--on-dark {
+  color: var(--color-primary);
+}
+.spinner svg {
+  animation: spinner-spin 900ms linear infinite;
+}
+@keyframes spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spinner-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner svg {
+    animation: spinner-pulse 1400ms var(--ease) infinite;
+  }
+}

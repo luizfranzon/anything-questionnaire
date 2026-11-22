@@ -1,0 +1,170 @@
+/* QuestionCard — só tokens por papel. */
+.qcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--width-reading);
+  box-sizing: border-box;
+  padding: var(--space-6);
+  border: 2px solid var(--color-divider);
+  border-radius: var(--radius-block);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.qcard__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: var(--leading-small);
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.qcard__topic {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+}
+.qcard__meta {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.qcard__position {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.qcard__tag {
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-fill-1);
+  color: var(--color-text);
+  font: 600 var(--text-caption) / var(--leading-caption) var(--font-sans);
+}
+
+.qcard__prompt {
+  margin: 0;
+  font: 400 var(--text-prompt) / var(--leading-prompt) var(--font-serif);
+  overflow-wrap: anywhere;
+}
+.qcard__prompt code,
+.qcard__prompt pre {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.8em;
+}
+
+.qcard__alts {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.qcard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  /* Altura mínima fixa: não pula ao virar o resumo da Resposta. */
+  align-content: flex-start;
+  min-height: 48px;
+}
+.qcard__submit {
+  margin-left: auto;
+}
+.qcard__summary {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.qcard__error {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-danger-text);
+  font: 500 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+
+/* Anulada: aviso ocre com a saída ("Pular") */
+.qcard__notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-warn-bg);
+  color: var(--color-warn-text);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.qcard__notice > svg {
+  flex: none;
+}
+.qcard__notice > div {
+  flex: 1;
+}
+
+/* Não carregou */
+.qcard__failure {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: var(--space-7) var(--space-5);
+  text-align: center;
+  color: var(--color-danger-text);
+}
+.qcard__failure-title {
+  margin: 0;
+  color: var(--color-text);
+  font: 400 var(--text-title) / var(--leading-title) var(--font-serif);
+}
+.qcard__failure-text {
+  max-width: 44ch;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+
+/* Esqueleto: mesmo layout, sem texto */
+.qcard__skel {
+  border-radius: var(--radius-card);
+  background: var(--color-fill-1);
+  animation: qcard-pulse 1.4s var(--ease) infinite alternate;
+}
+.qcard__skel--prompt {
+  height: calc(var(--leading-prompt) * 3);
+}
+.qcard__skel--alt {
+  height: 56px;
+}
+.qcard__skel--button {
+  width: 140px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+}
+@keyframes qcard-pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qcard__skel {
+    animation: none;
+  }
+}
+
+.qcard__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

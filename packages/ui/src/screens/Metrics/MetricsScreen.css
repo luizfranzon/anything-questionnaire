@@ -1,0 +1,11 @@
+/* Métricas — só tokens por papel. */
+.metrics__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.metrics__tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-3);
+}

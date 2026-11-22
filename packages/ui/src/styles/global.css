@@ -1,0 +1,78 @@
+@import "@fontsource/figtree/400.css";
+@import "@fontsource/figtree/500.css";
+@import "@fontsource/figtree/600.css";
+@import "@fontsource/figtree/700.css";
+@import "@fontsource/young-serif/400.css";
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Tailwind lê os mesmos papéis: bg-surface, text-muted, rounded-card... */
+@theme inline {
+  --color-*: initial;
+  --color-text: var(--color-text);
+  --color-muted: var(--color-text-muted);
+  --color-placeholder: var(--color-text-placeholder);
+  --color-disabled: var(--color-text-disabled);
+  --color-on-dark: var(--color-on-dark);
+  --color-on-dark-muted: var(--color-on-dark-muted);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-fill-1: var(--color-fill-1);
+  --color-fill-2: var(--color-fill-2);
+  --color-dark: var(--color-dark);
+  --color-border: var(--color-border);
+  --color-border-hover: var(--color-border-hover);
+  --color-divider: var(--color-divider);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-pressed: var(--color-primary-pressed);
+  --color-on-primary: var(--color-on-primary);
+  --color-focus: var(--color-focus);
+  --color-success: var(--color-success);
+  --color-success-bg: var(--color-success-bg);
+  --color-success-text: var(--color-success-text);
+  --color-danger: var(--color-danger);
+  --color-danger-bg: var(--color-danger-bg);
+  --color-danger-text: var(--color-danger-text);
+  --color-warn: var(--color-warn);
+  --color-warn-bg: var(--color-warn-bg);
+  --color-warn-text: var(--color-warn-text);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --radius-sm: var(--radius-sm);
+  --radius-card: var(--radius-card);
+  --radius-block: var(--radius-block);
+  --radius-pill: var(--radius-pill);
+  --shadow-float: var(--shadow-float);
+  --shadow-float-strong: var(--shadow-float-strong);
+}
+
+@layer base {
+  html {
+    background: var(--color-background);
+    color-scheme: light;
+  }
+  body {
+    margin: 0;
+    background: var(--color-background);
+    color: var(--color-text);
+    font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Foco só pelo teclado */
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,99 @@
+/* IngestionProgress — só tokens por papel. */
+.ingest {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+.ingest__step {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: var(--space-3);
+  padding: var(--space-2) 0;
+  min-height: 24px;
+}
+.ingest__icon {
+  display: inline-flex;
+  align-items: flex-start;
+  padding-top: 1px;
+  color: var(--color-text-disabled);
+}
+.ingest__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.ingest__label {
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+  color: var(--color-text-muted);
+}
+.ingest__step--done .ingest__icon {
+  color: var(--color-success);
+}
+.ingest__step--done .ingest__label {
+  color: var(--color-text);
+}
+.ingest__step--active .ingest__icon {
+  color: var(--color-dark);
+}
+.ingest__step--active .ingest__label {
+  color: var(--color-text);
+  font-weight: 600;
+}
+.ingest__step--error .ingest__icon,
+.ingest__step--error .ingest__label {
+  color: var(--color-danger-text);
+}
+.ingest__step--error .ingest__label {
+  font-weight: 600;
+}
+.ingest__error {
+  color: var(--color-danger-text);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.ingest__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.ingest__spin {
+  animation: ingest-spin 900ms linear infinite;
+}
+@keyframes ingest-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ingest__spin {
+    animation: ingest-pulse 1.4s ease-in-out infinite;
+  }
+}
+@keyframes ingest-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Compacta: uma linha de texto e uma barra fina */
+.ingest--compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ingest__line {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.ingest__line--error {
+  color: var(--color-danger-text);
+  font-weight: 600;
+}

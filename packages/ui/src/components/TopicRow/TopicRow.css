@@ -1,0 +1,39 @@
+/* TopicRow — só tokens por papel. */
+.trow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 48px 150px 128px;
+  align-items: center;
+  column-gap: var(--space-5);
+  min-height: 56px;
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 2px solid var(--color-divider);
+  list-style: none;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+.trow:last-child {
+  border-bottom: 0;
+}
+.trow__name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+  font: 600 var(--text-body) / var(--leading-body) var(--font-sans);
+  overflow-wrap: anywhere;
+}
+.trow__percent {
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.trow__answers {
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.trow--archived .trow__name {
+  color: var(--color-text-muted);
+}

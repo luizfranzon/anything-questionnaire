@@ -1,0 +1,35 @@
+/* RadioGroup — só tokens por papel. Os itens vêm de Choice. */
+.radio-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-sans);
+}
+.radio-group__legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+  color: var(--color-text);
+}
+.radio-group--disabled .radio-group__legend {
+  color: var(--color-text-muted);
+}
+.radio-group__optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+.radio-group__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+/* Cartões nunca se tocam */
+.radio-group__options--card {
+  gap: var(--space-2);
+}
+.radio-group__options--row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
+}

@@ -1,0 +1,102 @@
+/* Dialog — só tokens por papel. Flutua, então leva sombra forte. */
+.dialog {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+}
+/* Centro da tela. O reset do Tailwind zera a margin: auto do navegador, então fica explícito aqui. */
+.dialog[open] {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+}
+.dialog:not([open]) {
+  display: none;
+}
+.dialog::backdrop {
+  background: var(--color-overlay);
+  animation: dialog-backdrop-in var(--duration-fast) var(--ease);
+}
+.dialog[data-closing]::backdrop {
+  animation: dialog-backdrop-out var(--duration-quick) var(--ease) forwards;
+}
+@keyframes dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dialog-backdrop-out {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog::backdrop,
+  .dialog[data-closing]::backdrop {
+    animation-duration: 1ms;
+  }
+}
+
+.dialog__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-sizing: border-box;
+  max-height: calc(100vh - var(--space-7));
+  padding: var(--space-6);
+  border-radius: var(--radius-block);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float-strong);
+  font-family: var(--font-sans);
+}
+.dialog__panel--sm {
+  width: min(var(--width-sheet), calc(100vw - var(--space-7)));
+}
+.dialog__panel--md {
+  width: min(var(--width-reading), calc(100vw - var(--space-7)));
+}
+
+.dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.dialog__title {
+  margin: 0;
+  font: 400 var(--text-title) / var(--leading-title) var(--font-serif);
+  color: var(--color-text);
+}
+.dialog__header .close-btn {
+  margin: -4px -8px 0 0;
+}
+
+.dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  overflow-y: auto;
+  /* espaço para o anel de foco dos campos não ser cortado pela rolagem */
+  margin: calc(var(--space-2) * -1);
+  padding: var(--space-2);
+}
+.dialog__description {
+  margin: 0;
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+  color: var(--color-text-muted);
+}
+
+.dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}

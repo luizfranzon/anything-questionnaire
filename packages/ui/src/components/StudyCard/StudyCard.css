@@ -1,0 +1,79 @@
+/* StudyCard — só tokens por papel. O cartão todo é o alvo do link (::after); os ícones ficam acima dele. */
+.scard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-5);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  transition: border-color var(--duration-quick) var(--ease);
+}
+.scard:hover,
+.scard[data-state="hover"] {
+  border-color: var(--color-border-hover);
+}
+.scard:has(.scard__link:focus-visible),
+.scard[data-state="focus"] {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.scard__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.scard__title {
+  margin: 0;
+  min-width: 0;
+  font: 400 var(--text-title) / var(--leading-title) var(--font-serif);
+  overflow-wrap: anywhere;
+}
+.scard__link {
+  all: unset;
+  cursor: pointer;
+}
+.scard__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-card);
+}
+.scard__link:focus-visible {
+  outline: none;
+}
+
+.scard__actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-1);
+  margin: calc(var(--space-1) * -1) calc(var(--space-2) * -1) 0 0;
+}
+
+.scard__goal {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin: 0;
+  overflow: hidden;
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+  overflow-wrap: anywhere;
+}
+.scard__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.scard__meta {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}

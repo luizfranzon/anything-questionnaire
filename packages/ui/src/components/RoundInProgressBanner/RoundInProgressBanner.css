@@ -1,0 +1,45 @@
+/* RoundInProgressBanner — só tokens por papel. */
+.rbanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  border: 2px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-fill-1);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+.rbanner__body {
+  display: grid;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+.rbanner__title {
+  margin: 0;
+  font: 400 var(--text-lead) / var(--leading-lead) var(--font-serif);
+}
+.rbanner__meta {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.rbanner__body .progress {
+  max-width: 360px;
+}
+.rbanner__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-danger-text);
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.rbanner__error svg {
+  flex: none;
+  margin-top: 2px;
+}

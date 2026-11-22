@@ -1,0 +1,12 @@
+/* Proposta de Tópicos — só tokens por papel. */
+.topic-proposal__progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: var(--width-reading);
+}
+.topic-proposal__note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}

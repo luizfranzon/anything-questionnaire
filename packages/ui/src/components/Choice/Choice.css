@@ -1,0 +1,168 @@
+/* Choice — item de Checkbox e RadioGroup. Só tokens por papel.
+   O estado vem de [data-checked] (controlado por props); [data-state] existe para a matriz do Storybook. */
+.choice {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.choice__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.choice__label {
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+}
+.choice__description {
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  color: var(--color-text-muted);
+}
+
+/* O campo nativo cobre o item inteiro e fica invisível: teclado, leitor de tela e formulário de graça */
+.choice__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+/* Marcador: quadrado (checkbox) ou círculo (radio) com borda de 2px em tinta */
+.choice__mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  /* Centraliza com a primeira linha do rótulo (26px de entrelinha) */
+  margin-top: 1px;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-on-dark);
+  transition: background-color var(--duration-quick) var(--ease), border-color var(--duration-quick) var(--ease),
+    transform var(--duration-quick) var(--ease);
+}
+.choice--checkbox .choice__mark {
+  border-radius: var(--radius-sm);
+}
+.choice--radio .choice__mark {
+  border-radius: var(--radius-pill);
+}
+.choice__mark-content {
+  /* Saindo e entrando ao mesmo tempo, os dois ícones ocupam a mesma célula em vez de empilhar */
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+.choice__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-on-dark);
+}
+
+/* Marcado: marcador cheio em forest. O peso da fonte não muda. */
+.choice[data-checked="true"] .choice__mark,
+.choice[data-checked="mixed"] .choice__mark {
+  background: var(--color-dark);
+  border-color: var(--color-dark);
+}
+
+/* Versão simples: respiro vertical para a área de clique não ficar fina */
+.choice--plain {
+  min-height: 40px;
+  padding: var(--space-2) 0;
+}
+.choice--plain .choice__mark {
+  margin-top: 1px;
+}
+
+/* Hover: só a borda escurece (tinta para forest) */
+.choice:hover:not(.choice--disabled) .choice__mark,
+.choice[data-state="hover"] .choice__mark {
+  border-color: var(--color-border-hover);
+}
+.choice--card:hover:not(.choice--disabled),
+.choice--card[data-state="hover"] {
+  border-color: var(--color-border-hover);
+}
+
+/* Pressionado */
+.choice:active:not(.choice--disabled) .choice__mark,
+.choice[data-state="pressed"] .choice__mark {
+  transform: scale(0.92);
+  border-color: var(--color-border-hover);
+}
+.choice--card:active:not(.choice--disabled),
+.choice--card[data-state="pressed"] {
+  background: var(--color-fill-1);
+  border-color: var(--color-border-hover);
+}
+
+/* Foco: anel forest 3px, só pelo teclado */
+.choice--plain:has(.choice__input:focus-visible) .choice__mark,
+.choice--plain[data-state="focus"] .choice__mark {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.choice--card:has(.choice__input:focus-visible),
+.choice--card[data-state="focus"] {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* Versão cartão: borda de 2px em tinta, como as Alternativas */
+.choice--card {
+  padding: var(--space-3) var(--space-4);
+  min-height: 56px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  transition: background-color var(--duration-quick) var(--ease), border-color var(--duration-quick) var(--ease);
+}
+.choice--card[data-checked="true"] {
+  background: var(--color-fill-1);
+  border-color: var(--color-border-hover);
+}
+.choice--card[data-checked="true"]:active:not(.choice--disabled),
+.choice--card[data-checked="true"][data-state="pressed"] {
+  background: var(--color-fill-2);
+}
+
+/* Erro: borda berry no marcador (e no cartão); o texto e o ícone vêm de ChoiceMessage */
+.choice--invalid .choice__mark,
+.choice--invalid:hover:not(.choice--disabled) .choice__mark {
+  border-color: var(--color-danger);
+}
+.choice--invalid[data-checked="true"] .choice__mark,
+.choice--invalid[data-checked="mixed"] .choice__mark {
+  background: var(--color-danger);
+}
+.choice--card.choice--invalid,
+.choice--card.choice--invalid:hover:not(.choice--disabled) {
+  border-color: var(--color-danger);
+}
+
+/* Desabilitado */
+.choice--disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Mensagem de ajuda ou erro */
+.choice-message {
+  min-height: 0;
+}
+.choice-message:has(p) {
+  padding-top: var(--space-2);
+}

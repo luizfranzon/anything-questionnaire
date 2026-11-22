@@ -1,0 +1,159 @@
+/* Field — rótulo, ajuda, erro e a caixa de controle. Só tokens por papel.
+   [data-state] existe para a matriz de estados do Storybook. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  font-family: var(--font-sans);
+}
+.field__label {
+  font: 600 var(--text-small) / var(--leading-small) var(--font-sans);
+  color: var(--color-text);
+}
+.field--disabled .field__label {
+  color: var(--color-text-muted);
+}
+.field__optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.field__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.field__message {
+  flex: 1;
+  min-width: 0;
+}
+.field__help,
+.field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}
+.field__help {
+  color: var(--color-text-muted);
+}
+.field__error {
+  color: var(--color-danger-text);
+}
+.field__error svg {
+  flex: none;
+  margin-top: 2px;
+}
+.field__counter {
+  flex: none;
+  font: 400 var(--text-caption) / var(--leading-small) var(--font-sans);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Caixa de controle: borda de 2px em tinta, como os cartões de escolha */
+.control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 0 var(--space-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: text;
+  transition: border-color var(--duration-quick) var(--ease), background-color var(--duration-quick) var(--ease);
+}
+.control--start {
+  align-items: flex-start;
+}
+
+/* Campo dentro da caixa */
+.control__input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: var(--space-3) 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+  outline: none;
+}
+.control__input::placeholder {
+  color: var(--color-text-placeholder);
+  opacity: 1;
+}
+.control__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+}
+
+/* Hover: só a borda escurece (tinta para forest) */
+.control:hover:not(.control--disabled):not(.control--readonly),
+.control[data-state="hover"] {
+  border-color: var(--color-border-hover);
+}
+
+/* Foco: borda forest; o anel de 3px só quando veio do teclado */
+.control[data-focus],
+.control[data-state="focus"] {
+  border-color: var(--color-border-hover);
+}
+.control[data-focus="keyboard"],
+.control[data-state="focus"] {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* Erro: borda berry (o texto e o ícone vêm do FieldShell) */
+.control--invalid,
+.control--invalid:hover:not(.control--disabled):not(.control--readonly),
+.control--invalid[data-focus] {
+  border-color: var(--color-danger);
+}
+
+/* Somente leitura: valor legível, sem cara de campo editável */
+.control--readonly {
+  border-color: var(--color-divider);
+  background: var(--color-background);
+  cursor: default;
+}
+
+/* Desabilitado */
+.control--disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.control--disabled .control__input {
+  cursor: default;
+}
+
+/* Carregando: o spinner ocupa o lugar de um ícone e o tamanho do campo não muda */
+.control__spinner {
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  color: var(--color-text-muted);
+}
+.control--start .control__spinner {
+  align-self: flex-start;
+  margin-top: var(--space-3);
+}
+.control__spinner svg {
+  animation: control-spin 900ms linear infinite;
+}
+@keyframes control-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,92 @@
+/* Pagination — só tokens por papel. [data-state] existe para a matriz de estados do Storybook. */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+.pagination__range {
+  color: var(--color-text-muted);
+  font: 500 var(--text-small) / var(--leading-small) var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+.pagination__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pagination__list:only-child {
+  margin-inline: auto;
+}
+
+.pagination__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 40px;
+  height: 40px;
+  padding: 0 var(--space-2);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text);
+  font: 600 var(--text-small) / 1 var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  /* Sem transição de saída: ao trocar de página, a antiga some na hora e só a nova anima a entrada.
+     A transição vive nos estados de destino (hover e atual), não aqui. */
+  transition: none;
+}
+.pagination__item--nav {
+  padding: 0 var(--space-3);
+  color: var(--color-dark);
+}
+
+/* Hover: fundo suave, sem borda (a página atual tem borda e fundo) */
+.pagination__item:hover,
+.pagination__item[data-state="hover"] {
+  background: color-mix(in srgb, var(--color-fill-1), transparent 45%);
+  transition: background-color var(--duration-quick) var(--ease);
+}
+.pagination__item:active,
+.pagination__item[data-state="pressed"] {
+  background: var(--color-fill-1);
+}
+.pagination__item[data-state="focus"] {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* Página atual */
+.pagination__item[aria-current="page"] {
+  border-color: var(--color-border);
+  background: var(--color-fill-1);
+  cursor: default;
+  /* Só a entrada anima */
+  transition: background-color var(--duration-quick) var(--ease), border-color var(--duration-quick) var(--ease);
+}
+.pagination__item[aria-current="page"]:hover {
+  border-color: var(--color-border-hover);
+}
+
+.pagination__item:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+  pointer-events: none;
+}
+
+.pagination__gap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 40px;
+  padding-top: 10px;
+  min-width: 24px;
+  color: var(--color-text-muted);
+  text-align: center;
+  user-select: none;
+}

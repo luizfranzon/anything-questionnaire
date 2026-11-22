@@ -1,0 +1,104 @@
+/* Select — usa a caixa de Field. Só tokens por papel. */
+.select {
+  position: relative;
+}
+.select__control {
+  cursor: pointer;
+}
+.select__control.control--disabled,
+.select__control.control--readonly {
+  cursor: default;
+}
+.select__trigger {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  cursor: inherit;
+}
+.select__value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.select__value--placeholder {
+  color: var(--color-text-placeholder);
+}
+.select__chevron {
+  color: var(--color-text);
+}
+
+/* Aberto: a borda fica forest, como no foco */
+.select__control--open {
+  border-color: var(--color-border-hover);
+}
+
+/* Lista flutuante: a única parte do Select com sombra */
+.select__list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 296px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float-strong);
+  transform-origin: top center;
+}
+.select__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font: 400 var(--text-body) / var(--leading-body) var(--font-sans);
+  cursor: pointer;
+}
+.select__option-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.select__option-description {
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+  color: var(--color-text-muted);
+}
+/* Destaque do mouse e do teclado: só um fundo suave. O selecionado se marca pelo check. */
+.select__option--active {
+  background: var(--color-fill-1);
+}
+.select__option:active:not(.select__option--disabled) {
+  background: var(--color-fill-2);
+}
+.select__check {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--color-dark);
+}
+.select__option--disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+.select__option--disabled .select__option-description {
+  color: var(--color-text-disabled);
+}
+.select__empty {
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+  font: 400 var(--text-small) / var(--leading-small) var(--font-sans);
+}

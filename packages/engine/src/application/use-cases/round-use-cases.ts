@@ -4,6 +4,7 @@ import {
   toNewQuestion,
   type NewQuestion,
   type Correction,
+  type CorrectionItem,
   type NextQuestion,
   type RoundResult,
 } from "../../domain/question";
@@ -11,6 +12,7 @@ import {
   distributeEvenly,
   interleave,
   validateRoundCount,
+  type AnswerOutcome,
   type Confidence,
   type Round,
   type RoundPhase,
@@ -31,7 +33,7 @@ import type { UsageRecord } from "../../domain/usage";
 import type { ClaudeGateway } from "../ports/claude-gateway";
 import type { Clock } from "../ports/clock";
 import type { JobQueue } from "../ports/job-queue";
-import type { RoundPlan, RoundRepository, StoredRound } from "../ports/round-ports";
+import type { RoundPlan, RoundRepository, StoredRound, StoredRoundQuestion } from "../ports/round-ports";
 import type { StudyRepository } from "../ports/study-repository";
 import type { TopicRepository, UsageRepository } from "../ports/topic-proposal-ports";
 
@@ -59,6 +61,15 @@ function shuffle<T>(items: T[]): T[] {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
+}
+
+function toCorrection(question: StoredRoundQuestion, outcome: AnswerOutcome, confidence: Confidence | null): Correction {
+  return {
+    outcome,
+    correctAlternativeId: question.answerKey,
+    explanations: Object.fromEntries(question.alternatives.map((a) => [a.id, a.explanation])),
+    confidence,
+  };
 }
 
 export function createRoundUseCases({ studies, topics, rounds, usage, queue, claude, clock, random = Math.random }: Deps) {
@@ -264,14 +275,16 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
 
     /**
      * Records the Answer right away. `choice: null` is "Não sei" and counts as a mistake. In study mode the
-     * correction comes back immediately.
+     * correction comes back immediately. In mock mode the Confidence must come with the Answer and nothing is
+     * returned (`null`): the correction is only released by `getRoundCorrection` once the Round ends.
      */
     async answerQuestion(
       roundId: string,
       questionId: string,
       input: { choice: string | null; confidence?: Confidence },
-    ): Promise<Correction> {
-      await requireReadyRound(roundId);
+    ): Promise<Correction | null> {
+      const round = await requireReadyRound(roundId);
+      const { mode } = round;
       const questions = await rounds.listQuestions(roundId);
       const question = questions.find((q) => q.id === questionId);
       if (!question) throw new DomainError("QUESTION_NOT_IN_ROUND");
@@ -281,10 +294,13 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
       if (input.choice !== null && !question.alternatives.some((a) => a.id === input.choice)) {
         throw new DomainError("ALTERNATIVE_NOT_FOUND");
       }
+      if (mode === "mock" && input.choice !== null && !input.confidence) throw new DomainError("CONFIDENCE_REQUIRED");
 
       const outcome = input.choice === question.answerKey ? "correct" : "incorrect";
-      // Confidence is only asked after a correct Answer; for anything else it stays empty.
-      const confidence = outcome === "correct" ? (input.confidence ?? null) : null;
+      // Study mode only asks for Confidence after a correct Answer. Mock mode collects it with every Answer
+      // (the user does not know yet), so it is kept for wrong ones too; it never affects their grade.
+      const confidence =
+        mode === "mock" ? (input.choice === null ? null : (input.confidence ?? null)) : outcome === "correct" ? (input.confidence ?? null) : null;
       await rounds.insertAnswer(roundId, {
         questionId,
         response: input.choice,
@@ -292,18 +308,21 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
         confidence,
         answeredAt: clock.now(),
       });
-      await reschedule(questionId);
-      return {
-        outcome,
-        correctAlternativeId: question.answerKey,
-        explanations: Object.fromEntries(question.alternatives.map((a) => [a.id, a.explanation])),
-        confidence,
-      };
+      if (mode === "study") {
+        await reschedule(questionId);
+        return toCorrection(question, outcome, confidence);
+      }
+      // Mock mode: the Revisões schedule only moves once the Round ends, or the due count would reveal the outcome.
+      const done = await rounds.listAnswers(roundId);
+      if (done.length >= round.count) for (const { questionId: id } of done) await reschedule(id);
+      return null;
     },
 
-    /** Records whether the user was sure or doubtful about a correct Answer. */
+    /** Records whether the user was sure or doubtful about a correct Answer. Study mode only. */
     async setAnswerConfidence(roundId: string, questionId: string, confidence: Confidence): Promise<void> {
-      await requireReadyRound(roundId);
+      const { mode } = await requireReadyRound(roundId);
+      // Refused before looking at the Answer: telling "wrong" apart from "right" would leak the outcome.
+      if (mode === "mock") throw new DomainError("CONFIDENCE_GIVEN_WITH_ANSWER");
       const answer = (await rounds.listAnswers(roundId)).find((a) => a.questionId === questionId);
       if (!answer) throw new DomainError("NOT_ANSWERED");
       if (answer.outcome !== "correct") throw new DomainError("CONFIDENCE_NOT_APPLICABLE");
@@ -321,6 +340,32 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
         total: round.count,
         dontKnow: answers.filter((a) => a.response === null).length,
       };
+    },
+
+    /** Every Question with the user's Answer, Gabarito and Explicações. Only once the Round has ended. */
+    async getRoundCorrection(roundId: string): Promise<CorrectionItem[]> {
+      const round = await toRound(await requireReadyRound(roundId));
+      if (round.phase !== "completed") throw new DomainError("ROUND_NOT_COMPLETED");
+      const [questions, answers] = await Promise.all([rounds.listQuestions(roundId), rounds.listAnswers(roundId)]);
+      const byQuestion = new Map(answers.map((a) => [a.questionId, a]));
+      return questions.flatMap((q, i) => {
+        const answer = byQuestion.get(q.id);
+        if (!answer) return [];
+        return [
+          {
+            ...toCorrection(q, answer.outcome, answer.confidence),
+            position: i + 1,
+            question: {
+              id: q.id,
+              topic: q.topicName,
+              format: q.format,
+              prompt: q.prompt,
+              alternatives: q.alternatives.map(({ id, text }) => ({ id, text })),
+            },
+            pickedId: answer.response,
+          },
+        ];
+      });
     },
 
     startWorker(): Promise<void> {

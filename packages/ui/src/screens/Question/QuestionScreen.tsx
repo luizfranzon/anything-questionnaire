@@ -56,7 +56,7 @@ export interface QuestionScreenProps {
    * Grava a Resposta (`null` é "Não sei"). No modo estudo, a correção só aparece depois que a promessa
    * resolve; rejeitar mostra o erro de gravação e mantém a escolha.
    */
-  onAnswer?: (pickedId: string | null) => Promise<void> | void;
+  onAnswer?: (pickedId: string | null, confidence?: Confidence) => Promise<void> | void;
   /** Confiança informada depois de um acerto, no modo estudo. */
   onConfidence?: (value: Confidence) => void;
 }
@@ -118,7 +118,17 @@ export function QuestionScreen({
       setNeedConfidence(true);
       return;
     }
-    // Simulado: grava e já vai para a próxima, sem revelar nada.
+    // Simulado: grava a Resposta com a Confiança e já vai para a próxima, sem revelar nada.
+    setSaving(true);
+    setSaveFailed(false);
+    try {
+      await onAnswer?.(pickedId, pickedId === null ? undefined : confidence);
+    } catch {
+      setSaveFailed(true);
+      return;
+    } finally {
+      setSaving(false);
+    }
     if (current < round.total) setCurrent((c) => c + 1);
     reset();
     onNext?.();
@@ -169,7 +179,7 @@ export function QuestionScreen({
             setConfidence(v);
             setNeedConfidence(false);
           }}
-          error={initial.submitError}
+          error={initial.submitError || saveFailed}
         />
       );
     }
@@ -189,7 +199,7 @@ export function QuestionScreen({
           selectedId={selectedId}
           onSelect={setSelectedId}
           submitting={initial.submitting || saving}
-          submitError={study ? initial.submitError || saveFailed : undefined}
+          submitError={initial.submitError || saveFailed}
           onSubmit={() => submit(selectedId)}
           onDontKnow={() => submit(null)}
           onRetry={() => undefined}

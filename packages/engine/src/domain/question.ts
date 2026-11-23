@@ -75,6 +75,14 @@ export interface Correction {
   confidence: Confidence | null;
 }
 
+/** One Question of a finished Round with the user's Answer and everything that was held back. */
+export interface CorrectionItem extends Correction {
+  position: number;
+  question: PresentedQuestion;
+  /** `null` is "Não sei". */
+  pickedId: string | null;
+}
+
 export interface RoundResult {
   correct: number;
   total: number;

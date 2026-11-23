@@ -3,6 +3,7 @@ import {
   DomainError,
   type Confidence,
   type Correction,
+  type CorrectionItem,
   type DomainErrorCode,
   type Engine,
   type NextQuestion,
@@ -16,6 +17,7 @@ export type Result<T> = { ok: true; data: T } | { ok: false; code: DomainErrorCo
 export interface RoundDto {
   id: string;
   studyId: string;
+  mode: Round["mode"];
   count: number;
   phase: Round["phase"];
   generated: number;
@@ -27,9 +29,10 @@ export interface RoundTopicDto {
   name: string;
 }
 
-const toDto = ({ id, studyId, count, phase, generated, answered }: Round): RoundDto => ({
+const toDto = ({ id, studyId, mode, count, phase, generated, answered }: Round): RoundDto => ({
   id,
   studyId,
+  mode,
   count,
   phase,
   generated,
@@ -58,11 +61,11 @@ export const listRoundTopics = createServerFn({ method: "GET" })
   );
 
 export const createRound = createServerFn({ method: "POST" })
-  .validator((input: { studyId: string; count: number; topicIds: string[] }) => input)
+  .validator((input: { studyId: string; count: number; mode: Round["mode"]; topicIds: string[] }) => input)
   .handler(({ data }) =>
     toResult(() =>
       withEngine(async (engine) =>
-        toDto(await engine.createRound(data.studyId, { count: data.count, topicIds: data.topicIds })),
+        toDto(await engine.createRound(data.studyId, { count: data.count, mode: data.mode, topicIds: data.topicIds })),
       ),
     ),
   );
@@ -79,9 +82,13 @@ export const getNextQuestion = createServerFn({ method: "GET" })
   );
 
 export const answerQuestion = createServerFn({ method: "POST" })
-  .validator((input: { roundId: string; questionId: string; choice: string | null }) => input)
-  .handler(({ data }): Promise<Result<Correction>> =>
-    toResult(() => withEngine((engine) => engine.answerQuestion(data.roundId, data.questionId, { choice: data.choice }))),
+  .validator((input: { roundId: string; questionId: string; choice: string | null; confidence?: Confidence }) => input)
+  .handler(({ data }): Promise<Result<Correction | null>> =>
+    toResult(() =>
+      withEngine((engine) =>
+        engine.answerQuestion(data.roundId, data.questionId, { choice: data.choice, confidence: data.confidence }),
+      ),
+    ),
   );
 
 export const setAnswerConfidence = createServerFn({ method: "POST" })
@@ -92,6 +99,13 @@ export const setAnswerConfidence = createServerFn({ method: "POST" })
         await engine.setAnswerConfidence(data.roundId, data.questionId, data.confidence);
       }),
     ),
+  );
+
+/** The full correction of a finished Round. The engine refuses it before the end, so nothing leaks mid-Round. */
+export const getRoundCorrection = createServerFn({ method: "GET" })
+  .validator((roundId: string) => roundId)
+  .handler(({ data: roundId }): Promise<Result<CorrectionItem[]>> =>
+    toResult(() => withEngine((engine) => engine.getRoundCorrection(roundId))),
   );
 
 export const getRoundResult = createServerFn({ method: "GET" })

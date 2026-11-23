@@ -3,7 +3,8 @@ import { DomainError } from "./errors";
 export const ROUND_COUNT_MIN = 1;
 export const ROUND_COUNT_MAX = 100;
 
-export type RoundMode = "study";
+/** `study`: correction after each Answer. `mock` (simulado): everything is held back until the Round ends. */
+export type RoundMode = "study" | "mock";
 export type Confidence = "sure" | "doubt";
 /** `partial` is reserved for open answers; multiple choice is only correct or incorrect. */
 export type AnswerOutcome = "correct" | "partial" | "incorrect";

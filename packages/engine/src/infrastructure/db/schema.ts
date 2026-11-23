@@ -43,7 +43,7 @@ export const rounds = pgTable("rounds", {
   studyId: uuid("study_id")
     .notNull()
     .references(() => studies.id, { onDelete: "cascade" }),
-  mode: text("mode", { enum: ["study"] }).notNull(),
+  mode: text("mode", { enum: ["study", "mock"] }).notNull(),
   count: integer("count").notNull(),
   /** The Topics the Round was restricted to; null means every active Topic. */
   topicIds: jsonb("topic_ids").$type<string[]>(),

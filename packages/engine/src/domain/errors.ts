@@ -20,7 +20,9 @@ export type DomainErrorCode =
   | "ALTERNATIVE_NOT_FOUND"
   | "ALREADY_ANSWERED"
   | "NOT_ANSWERED"
-  | "CONFIDENCE_NOT_APPLICABLE";
+  | "CONFIDENCE_NOT_APPLICABLE"
+  | "CONFIDENCE_REQUIRED"
+  | "CONFIDENCE_GIVEN_WITH_ANSWER";
 
 /** A business rule was violated. Carries a stable code; presentation decides the user-facing text. */
 export class DomainError extends Error {

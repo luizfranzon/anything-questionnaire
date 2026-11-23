@@ -24,6 +24,8 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   ALREADY_ANSWERED: "Você já respondeu essa Pergunta.",
   NOT_ANSWERED: "Responda a Pergunta primeiro.",
   CONFIDENCE_NOT_APPLICABLE: "A Confiança só vale para acertos.",
+  CONFIDENCE_REQUIRED: "Marque a Confiança antes de responder.",
+  CONFIDENCE_GIVEN_WITH_ANSWER: "No simulado, a Confiança é enviada junto com a Resposta.",
 };
 
 export const GENERIC_SAVE_ERROR = "Não foi possível gravar. Confira se o aplicativo está rodando e tente de novo.";

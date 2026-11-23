@@ -19,7 +19,7 @@ export const Route = createFileRoute("/rounds/$roundId")({
     const next = await getNextQuestion({ data: params.roundId });
     if (!next.ok) throw notFound();
     if (!next.data) throw redirect({ to: "/rounds/$roundId/result", params });
-    return { studyId, next: next.data };
+    return { studyId, mode: round.data.mode, next: next.data };
   },
   component: PlayRoundRoute,
 });
@@ -37,7 +37,7 @@ const CONFIDENCE: Record<"certeza" | "duvida", Confidence> = { certeza: "sure", 
 
 function PlayRoundRoute() {
   const { roundId } = Route.useParams();
-  const { studyId, next: first } = Route.useLoaderData();
+  const { mode, next: first } = Route.useLoaderData();
   const navigate = useNavigate();
   const [next, setNext] = useState<NextQuestion>(first);
   const [question, setQuestion] = useState<QuestionData>(() => toQuestionData(first));
@@ -47,18 +47,28 @@ function PlayRoundRoute() {
 
   return (
     <QuestionScreen
-      mode="study"
+      mode={mode === "mock" ? "mock" : "study"}
       round={{ current: first.position, total: first.total }}
       question={question}
       status={status}
       onExit={leave}
-      onAnswer={async (pickedId) => {
-        const result = await answerQuestion({ data: { roundId, questionId: next.question.id, choice: pickedId } });
+      onAnswer={async (pickedId, confidence) => {
+        const result = await answerQuestion({
+          data: {
+            roundId,
+            questionId: next.question.id,
+            choice: pickedId,
+            confidence: confidence && CONFIDENCE[confidence],
+          },
+        });
         if (!result.ok) throw new Error(result.code);
+        // Mock mode gets nothing back: the correction waits for the end of the Round.
+        if (!result.data) return;
+        const correction = result.data;
         setQuestion((q) => ({
           ...q,
-          correctId: result.data.correctAlternativeId,
-          explanations: result.data.explanations,
+          correctId: correction.correctAlternativeId,
+          explanations: correction.explanations,
         }));
       }}
       onConfidence={(value) => {

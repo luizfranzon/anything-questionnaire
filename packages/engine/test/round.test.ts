@@ -153,7 +153,7 @@ describe("Answering a Round in study mode", () => {
     const { round } = await readyRound(2);
     const { question } = (await ctx.engine.getNextQuestion(round.id))!;
 
-    const correction = await ctx.engine.answerQuestion(round.id, question.id, { choice: wrongOf(question.alternatives) });
+    const correction = (await ctx.engine.answerQuestion(round.id, question.id, { choice: wrongOf(question.alternatives) }))!;
 
     expect(correction.outcome).toBe("incorrect");
     expect(correction.correctAlternativeId).toBe(correctOf(question.alternatives));
@@ -168,7 +168,7 @@ describe("Answering a Round in study mode", () => {
     const { round } = await readyRound(1);
     const { question } = (await ctx.engine.getNextQuestion(round.id))!;
 
-    const correction = await ctx.engine.answerQuestion(round.id, question.id, { choice: null });
+    const correction = (await ctx.engine.answerQuestion(round.id, question.id, { choice: null }))!;
 
     expect(correction.outcome).toBe("incorrect");
     expect(await ctx.engine.getRoundResult(round.id)).toEqual({ correct: 0, total: 1, dontKnow: 1 });
@@ -309,5 +309,118 @@ describe("Blind resolution during generation", () => {
 
     expect(await ctx.engine.getRound(round.id)).toMatchObject({ phase: "ready", generated: 4 });
     expect(ctx.claude.calls.generateQuestions.map((c) => c.topic.name)).toEqual(["IAM", "VPC", "VPC"]);
+  });
+});
+
+describe("Mock mode (modo simulado)", () => {
+  async function mockRound(count: number, topics = ["IAM", "VPC"]) {
+    const { study } = await studyWithTopics(topics);
+    const round = await ctx.engine.createRound(study.id, { count, mode: "mock" });
+    await ctx.engine.drainJobs();
+    return { study, round };
+  }
+
+  it("defaults to study mode and takes the mode at creation", async () => {
+    const { study } = await studyWithTopics(["IAM"]);
+    expect((await ctx.engine.createRound(study.id, { count: 1 })).mode).toBe("study");
+    expect((await ctx.engine.createRound(study.id, { count: 1, mode: "mock" })).mode).toBe("mock");
+  });
+
+  it("takes the Confidence together with the Answer and returns nothing about the outcome", async () => {
+    const { round } = await mockRound(2);
+    const { question } = (await ctx.engine.getNextQuestion(round.id))!;
+
+    await expect(
+      ctx.engine.answerQuestion(round.id, question.id, { choice: correctOf(question.alternatives) }),
+    ).rejects.toMatchObject({ code: "CONFIDENCE_REQUIRED" });
+
+    const receipt = await ctx.engine.answerQuestion(round.id, question.id, {
+      choice: correctOf(question.alternatives),
+      confidence: "sure",
+    });
+    expect(receipt).toBeNull();
+    expect(await ctx.engine.getRound(round.id)).toMatchObject({ phase: "in-progress", answered: 1 });
+
+    // "Não sei" needs no Confidence.
+    const second = (await ctx.engine.getNextQuestion(round.id))!.question;
+    expect(await ctx.engine.answerQuestion(round.id, second.id, { choice: null })).toBeNull();
+  });
+
+  it("leaks no outcome, Gabarito or Explicação before the Round ends", async () => {
+    const { study, round } = await mockRound(2);
+    const seen: unknown[] = [await ctx.engine.getRound(round.id)];
+
+    const first = (await ctx.engine.getNextQuestion(round.id))!;
+    seen.push(first);
+    seen.push(await ctx.engine.answerQuestion(round.id, first.question.id, { choice: wrongOf(first.question.alternatives), confidence: "sure" }));
+    seen.push(await ctx.engine.getRound(round.id));
+    const second = (await ctx.engine.getNextQuestion(round.id))!;
+    seen.push(second);
+    // Desempenho and Revisões must not move either: that would tell whether the Answer was right.
+    expect(await ctx.engine.listTopicPerformance(study.id)).toMatchObject([{ answers: 0 }, { answers: 0 }]);
+    ctx.clock.set(new Date(ctx.clock.now().getTime() + 60 * 86_400_000));
+    expect(await ctx.engine.countDueReviews(study.id)).toBe(0);
+
+    // Neither a right nor a wrong Answer can be told apart through the other operations.
+    const refusals = [];
+    for (const answered of [first.question.id, second.question.id]) {
+      for (const read of [
+        () => ctx.engine.getRoundResult(round.id),
+        () => ctx.engine.getRoundCorrection(round.id),
+        () => ctx.engine.setAnswerConfidence(round.id, answered, "doubt"),
+      ]) {
+        refusals.push(await read().then(() => "released", (e) => e.code));
+      }
+    }
+    expect(refusals).toEqual([
+      "ROUND_NOT_COMPLETED", "ROUND_NOT_COMPLETED", "CONFIDENCE_GIVEN_WITH_ANSWER",
+      "ROUND_NOT_COMPLETED", "ROUND_NOT_COMPLETED", "CONFIDENCE_GIVEN_WITH_ANSWER",
+    ]);
+    expect(JSON.stringify(seen)).not.toMatch(/certa|errada|correct|incorrect|explanation/i);
+  });
+
+  it("releases the result and the full correction when the Round ends", async () => {
+    const { round } = await mockRound(3);
+    const picked: Array<{ id: string; choice: string | null }> = [];
+    for (let step = 0; ; step++) {
+      const next = await ctx.engine.getNextQuestion(round.id);
+      if (!next) break;
+      const alts = next.question.alternatives;
+      // Right (sure), wrong, "Não sei".
+      const choice = step === 0 ? correctOf(alts) : step === 1 ? wrongOf(alts) : null;
+      picked.push({ id: next.question.id, choice });
+      await ctx.engine.answerQuestion(round.id, next.question.id, { choice, confidence: choice ? "sure" : undefined });
+    }
+
+    expect(await ctx.engine.getRound(round.id)).toMatchObject({ phase: "completed" });
+    expect(await ctx.engine.getRoundResult(round.id)).toEqual({ correct: 1, total: 3, dontKnow: 1 });
+
+    const correction = await ctx.engine.getRoundCorrection(round.id);
+    expect(correction.map((c) => [c.question.id, c.pickedId, c.outcome, c.confidence])).toEqual([
+      [picked[0].id, picked[0].choice, "correct", "sure"],
+      [picked[1].id, picked[1].choice, "incorrect", "sure"],
+      [picked[2].id, null, "incorrect", null],
+    ]);
+    for (const item of correction) {
+      expect(item.correctAlternativeId).toBe(correctOf(item.question.alternatives));
+      expect(Object.keys(item.explanations).sort()).toEqual(item.question.alternatives.map((a) => a.id).sort());
+      expect(item.explanations[item.correctAlternativeId]).toMatch(/está certa/);
+    }
+  });
+
+  it("feeds Desempenho and Revisões like study mode", async () => {
+    const { study, round } = await mockRound(2, ["IAM"]);
+    for (let step = 0; ; step++) {
+      const next = await ctx.engine.getNextQuestion(round.id);
+      if (!next) break;
+      const alts = next.question.alternatives;
+      await ctx.engine.answerQuestion(round.id, next.question.id, step === 0
+        ? { choice: correctOf(alts), confidence: "sure" }
+        : { choice: wrongOf(alts), confidence: "doubt" });
+    }
+
+    expect(await ctx.engine.listTopicPerformance(study.id)).toMatchObject([{ name: "IAM", answers: 2, performance: 0.5 }]);
+    ctx.clock.set(new Date(ctx.clock.now().getTime() + 60 * 86_400_000));
+    expect(await ctx.engine.countDueReviews(study.id)).toBe(2);
   });
 });

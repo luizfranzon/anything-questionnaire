@@ -10,6 +10,8 @@ export interface RoundResultScreenProps extends Omit<RoundResultProps, "onNewRou
   onReview?: () => void;
   onRetry?: () => void;
   onBack?: () => void;
+  /** Conteúdo abaixo do resultado, ex.: a correção completa aberta por "Ver correção". */
+  children?: React.ReactNode;
 }
 
 /** Tickets 03 e 07: o resultado ao fim da Rodada. Primária: "Nova Rodada". */
@@ -20,6 +22,7 @@ export function RoundResultScreen({
   onReview,
   onRetry,
   onBack,
+  children,
   ...result
 }: RoundResultScreenProps) {
   return (
@@ -34,6 +37,7 @@ export function RoundResultScreen({
         onReview={canReview ? (onReview ?? (() => undefined)) : undefined}
         onRetry={onRetry}
       />
+      {children}
     </AppShell>
   );
 }

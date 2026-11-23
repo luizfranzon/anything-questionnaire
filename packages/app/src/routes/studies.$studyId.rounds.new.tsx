@@ -68,14 +68,10 @@ function NewRoundRoute() {
       submitError={submitError}
       onBack={() => void navigate({ to: "/studies" })}
       onSubmit={async ({ count, mode, topicIds }) => {
-        if (mode !== "study") {
-          setSubmitError("O modo Simulado ainda não está disponível. Escolha o modo Estudo.");
-          return;
-        }
         setSubmitting(true);
         setSubmitError(undefined);
         try {
-          const result = await createRound({ data: { studyId: study.id, count, topicIds: topicIds.length === topics.length ? [] : topicIds } });
+          const result = await createRound({ data: { studyId: study.id, count, mode: mode === "mock" ? "mock" : "study", topicIds: topicIds.length === topics.length ? [] : topicIds } });
           if (!result.ok) {
             setSubmitError(messageFor(result.code));
             return;

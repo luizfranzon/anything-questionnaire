@@ -40,6 +40,7 @@ export {
 } from "./domain/round";
 export type {
   Correction,
+  CorrectionItem,
   GeneratedQuestion,
   NextQuestion,
   PresentedQuestion,

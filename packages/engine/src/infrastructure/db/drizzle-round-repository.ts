@@ -119,7 +119,14 @@ export function createDrizzleRoundRepository(db: PostgresJsDatabase): RoundRepos
         })
         .from(answers)
         .innerJoin(questions, eq(questions.id, answers.questionId))
-        .where(eq(questions.studyId, studyId));
+        .innerJoin(rounds, eq(rounds.id, answers.roundId))
+        .where(
+          and(
+            eq(questions.studyId, studyId),
+            // Answers of a mock Round only count once it ends; before that they would reveal the outcome.
+            sql`(${rounds.mode} <> 'mock' or (select count(*) from answers a2 where a2.round_id = ${rounds.id}) >= ${rounds.count})`,
+          ),
+        );
     },
 
     attachReviews(round, questionIds) {

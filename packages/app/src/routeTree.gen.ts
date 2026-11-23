@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RoundsRoundIdRouteImport } from './routes/rounds.$roundId'
 import { Route as StudiesIndexRouteImport } from './routes/studies.index'
 import { Route as StudiesNewRouteImport } from './routes/studies.new'
@@ -22,6 +23,11 @@ import { Route as StudiesStudyIdRoundsNewRouteImport } from './routes/studies.$s
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoundsRoundIdRoute = RoundsRoundIdRouteImport.update({
@@ -67,6 +73,7 @@ const StudiesStudyIdRoundsNewRoute = StudiesStudyIdRoundsNewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies/': typeof StudiesIndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies': typeof StudiesIndexRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies/': typeof StudiesIndexRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
     | '/rounds/$roundId'
     | '/studies/new'
     | '/studies/'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settings'
     | '/rounds/$roundId'
     | '/studies/new'
     | '/studies'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/settings'
     | '/rounds/$roundId'
     | '/studies/new'
     | '/studies/'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   RoundsRoundIdRoute: typeof RoundsRoundIdRouteWithChildren
   StudiesNewRoute: typeof StudiesNewRoute
   StudiesIndexRoute: typeof StudiesIndexRoute
@@ -153,6 +166,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rounds/$roundId': {
@@ -228,6 +248,7 @@ const RoundsRoundIdRouteWithChildren = RoundsRoundIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   RoundsRoundIdRoute: RoundsRoundIdRouteWithChildren,
   StudiesNewRoute: StudiesNewRoute,
   StudiesIndexRoute: StudiesIndexRoute,

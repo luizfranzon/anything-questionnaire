@@ -29,7 +29,7 @@ import {
   type TopicPerformance,
 } from "../../domain/performance";
 import { reviewSlots, scheduleFromHistory, shuffleWith } from "../../domain/review";
-import type { UsageRecord } from "../../domain/usage";
+import type { Stage, UsageRecord } from "../../domain/usage";
 import type { ClaudeGateway } from "../ports/claude-gateway";
 import type { Clock } from "../ports/clock";
 import type { JobQueue } from "../ports/job-queue";
@@ -49,6 +49,7 @@ interface Deps {
   usage: UsageRepository;
   queue: JobQueue;
   claude: ClaudeGateway;
+  modelFor: (stage: Stage) => Promise<string>;
   clock: Clock;
   /** Source of randomness for drawing Topics; replaced in tests. */
   random?: Random;
@@ -72,7 +73,17 @@ function toCorrection(question: StoredRoundQuestion, outcome: AnswerOutcome, con
   };
 }
 
-export function createRoundUseCases({ studies, topics, rounds, usage, queue, claude, clock, random = Math.random }: Deps) {
+export function createRoundUseCases({
+  studies,
+  topics,
+  rounds,
+  usage,
+  queue,
+  claude,
+  modelFor,
+  clock,
+  random = Math.random,
+}: Deps) {
   const settings = { ...PERFORMANCE_DEFAULTS };
 
   async function measureTopics(studyId: string, active: Array<{ id: string; name: string }>): Promise<TopicPerformance[]> {
@@ -123,6 +134,7 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
   async function verifyBlind(studyId: string, roundId: string, batch: NewQuestion[]): Promise<NewQuestion[]> {
     if (batch.length === 0) return [];
     const { output, model, usage: tokens } = await claude.resolveBlind({
+      model: await modelFor("blind-resolution"),
       studyId,
       roundId,
       questions: batch.map((q) => ({ prompt: q.prompt, alternatives: q.alternatives.map((a) => a.text) })),
@@ -167,6 +179,7 @@ export function createRoundUseCases({ studies, topics, rounds, usage, queue, cla
         if (calls++ >= maxCalls) throw new Error(`Claude did not produce enough verified Questions for "${topic.name}"`);
         const asked = Math.min(missing, GENERATION_BATCH_SIZE);
         const { output, model, usage: tokens } = await claude.generateQuestions({
+          model: await modelFor("question-generation"),
           studyId: study.id,
           roundId: round.id,
           goal: study.goal,

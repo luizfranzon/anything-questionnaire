@@ -20,6 +20,8 @@ export interface PriceRow {
 export interface PriceTableProps {
   rows: PriceRow[];
   onChange: (id: string, field: PriceField, value: number | null) => void;
+  /** O usuário saiu de um campo da linha: bom momento para gravar. */
+  onCommit?: (id: string) => void;
   /** Carregando a tabela: mantém linhas e colunas no lugar. */
   loading?: boolean;
   /** Linha sendo gravada: os campos dela não aceitam edição. */
@@ -95,7 +97,7 @@ function PriceCell({ value, label, inert, invalid, describedBy, onCommit, onBlur
 }
 
 /** Tabela de preços por modelo, editável (ticket 19). Valores em US$ por 1 milhão de tokens. */
-export function PriceTable({ rows, onChange, loading, savingId, errors, readOnly, disabled, className }: PriceTableProps) {
+export function PriceTable({ rows, onChange, onCommit, loading, savingId, errors, readOnly, disabled, className }: PriceTableProps) {
   const uid = useId();
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
@@ -166,7 +168,10 @@ export function PriceTable({ rows, onChange, loading, savingId, errors, readOnly
                       invalid={invalid}
                       describedBy={`${uid}-${key}`}
                       onCommit={(v) => onChange(row.id, c.field, v)}
-                      onBlur={() => setTouched((t) => ({ ...t, [key]: true }))}
+                      onBlur={() => {
+                        setTouched((t) => ({ ...t, [key]: true }));
+                        onCommit?.(row.id);
+                      }}
                     />
                   </td>
                 );

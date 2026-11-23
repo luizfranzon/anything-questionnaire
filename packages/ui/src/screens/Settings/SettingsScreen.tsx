@@ -97,6 +97,10 @@ export interface SettingsScreenProps {
   /** Só para o Storybook: mostra o erro de faixa sem precisar sair do campo. */
   showRangeErrors?: boolean;
   onRetry?: () => void;
+  /** O usuário escolheu outro modelo para uma Etapa. */
+  onStageModelChange?: (stageId: string, modelId: string) => void;
+  /** O usuário terminou de editar uma linha da tabela de preços, com os quatro valores preenchidos. */
+  onPriceSave?: (row: PriceRow & Record<PriceField, number>) => void;
 }
 
 /** Tickets 19 e 21: modelo por Etapa, tabela de preços e parâmetros do motor. */
@@ -113,9 +117,11 @@ export function SettingsScreen({
   paramErrors,
   showRangeErrors,
   onRetry,
+  onStageModelChange,
+  onPriceSave,
 }: SettingsScreenProps) {
   const [models, setModels] = useState<Record<string, string>>(() =>
-    Object.fromEntries(STAGES.map((s) => [s.id, initialModels[s.id] ?? "opus"])),
+    Object.fromEntries(STAGES.map((s) => [s.id, initialModels[s.id] ?? "sonnet"])),
   );
   const [prices, setPrices] = useState(initialPrices);
   const [params, setParams] = useState<Record<string, number | null>>(() =>
@@ -154,7 +160,7 @@ export function SettingsScreen({
         <PageHeader
           level="section"
           title="Modelo por Etapa"
-          description="Todas as Etapas começam no Opus 5.5. Troque o modelo de uma Etapa para equilibrar qualidade e custo."
+          description="Todas as Etapas começam no Sonnet 5.5. Troque o modelo de uma Etapa para equilibrar qualidade e custo."
         />
         {loading ? (
           <SkeletonGroup label="Carregando modelos">
@@ -173,8 +179,11 @@ export function SettingsScreen({
                 description={s.description}
                 options={MODELS}
                 value={models[s.id]}
-                defaultValue="opus"
-                onValueChange={(v) => setModels((cur) => ({ ...cur, [s.id]: v }))}
+                defaultValue="sonnet"
+                onValueChange={(v) => {
+                  setModels((cur) => ({ ...cur, [s.id]: v }));
+                  onStageModelChange?.(s.id, v);
+                }}
                 saving={stageSaving === s.id}
                 error={stageError?.[s.id]}
               />
@@ -197,6 +206,12 @@ export function SettingsScreen({
           onChange={(id, field: PriceField, value) =>
             setPrices((rows) => rows.map((r) => (r.id === id ? { ...r, [field]: value } : r)))
           }
+          onCommit={(id) => {
+            const row = prices.find((r) => r.id === id);
+            if (row && row.input != null && row.output != null && row.cacheRead != null && row.cacheWrite != null) {
+              onPriceSave?.({ ...row, input: row.input, output: row.output, cacheRead: row.cacheRead, cacheWrite: row.cacheWrite });
+            }
+          }}
         />
       </section>
 

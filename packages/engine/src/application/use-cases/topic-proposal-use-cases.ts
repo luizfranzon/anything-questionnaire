@@ -6,7 +6,7 @@ import {
   type Topic,
   type TopicProposal,
 } from "../../domain/topic";
-import type { UsageRecord } from "../../domain/usage";
+import type { Stage, UsageRecord } from "../../domain/usage";
 import type { ClaudeGateway } from "../ports/claude-gateway";
 import type { Clock } from "../ports/clock";
 import type { JobQueue } from "../ports/job-queue";
@@ -25,10 +25,11 @@ interface Deps {
   usage: UsageRepository;
   queue: JobQueue;
   claude: ClaudeGateway;
+  modelFor: (stage: Stage) => Promise<string>;
   clock: Clock;
 }
 
-export function createTopicProposalUseCases({ studies, proposals, topics, usage, queue, claude, clock }: Deps) {
+export function createTopicProposalUseCases({ studies, proposals, topics, usage, queue, claude, modelFor, clock }: Deps) {
   async function toProposal(stored: StoredProposal): Promise<TopicProposal> {
     const base = { id: stored.id, studyId: stored.studyId };
     if (stored.topics) return { ...base, phase: "ready", topics: stored.topics };
@@ -46,7 +47,11 @@ export function createTopicProposalUseCases({ studies, proposals, topics, usage,
     const study = await studies.findById(proposal.studyId);
     if (!study) return;
 
-    const { output, model, usage: tokens } = await claude.extractTopics({ studyId: study.id, goal: study.goal });
+    const { output, model, usage: tokens } = await claude.extractTopics({
+      studyId: study.id,
+      goal: study.goal,
+      model: await modelFor("topic-extraction"),
+    });
 
     const record: UsageRecord = {
       stage: "topic-extraction",

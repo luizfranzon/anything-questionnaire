@@ -6,7 +6,7 @@ export type Stage =
   | "blind-resolution"
   | "contestation-judgment";
 
-export const DEFAULT_MODEL = "claude-opus-5-5";
+export const DEFAULT_MODEL = "claude-sonnet-5-5";
 
 export interface TokenUsage {
   inputTokens: number;

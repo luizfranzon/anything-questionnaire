@@ -30,7 +30,9 @@ describe("Topic proposal", () => {
       phase: "ready",
       topics: ["IAM", "VPC", "S3"],
     });
-    expect(ctx.claude.calls.extractTopics).toEqual([{ studyId: study.id, goal: "Pass the SAA-C03 exam" }]);
+    expect(ctx.claude.calls.extractTopics).toEqual([
+      { studyId: study.id, goal: "Pass the SAA-C03 exam", model: "claude-sonnet-5-5" },
+    ]);
   });
 
   it("returns the same proposal when requested again while it is in flight or ready", async () => {

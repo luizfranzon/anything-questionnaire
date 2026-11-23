@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { Alternative } from "../../domain/question";
 import type { Difficulty } from "../../domain/performance";
-import { boolean, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const studies = pgTable("studies", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -123,6 +123,21 @@ export const answers = pgTable(
   },
   (t) => [uniqueIndex("answers_round_question_unique").on(t.roundId, t.questionId)],
 );
+
+/** The model the user picked for a Stage. A Stage without a row uses the default model. */
+export const stageModels = pgTable("stage_models", {
+  stage: text("stage").primaryKey(),
+  model: text("model").notNull(),
+});
+
+/** Prices the user edited, in US$ per 1 million tokens. A model without a row uses its starting price. */
+export const modelPrices = pgTable("model_prices", {
+  model: text("model").primaryKey(),
+  input: doublePrecision("input").notNull(),
+  output: doublePrecision("output").notNull(),
+  cacheRead: doublePrecision("cache_read").notNull(),
+  cacheWrite: doublePrecision("cache_write").notNull(),
+});
 
 /** One row per Claude call. Kept when the Study is deleted, since the spend happened. */
 export const usageRecords = pgTable("usage_records", {

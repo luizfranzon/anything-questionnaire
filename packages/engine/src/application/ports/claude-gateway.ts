@@ -9,11 +9,15 @@ export interface StageResult<T> {
 }
 
 export interface ExtractTopicsRequest {
+  /** The model configured for this Stage. */
+  model: string;
   studyId: string;
   goal: string;
 }
 
 export interface GenerateQuestionsRequest {
+  /** The model configured for this Stage. */
+  model: string;
   studyId: string;
   roundId: string;
   goal: string;
@@ -24,6 +28,8 @@ export interface GenerateQuestionsRequest {
 }
 
 export interface ResolveBlindRequest {
+  /** The model configured for this Stage. */
+  model: string;
   studyId: string;
   roundId: string;
   /** Only statements and Alternativas: never the Gabarito or the Explicacoes. */

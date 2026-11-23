@@ -7,7 +7,7 @@ import {
   type StageResult,
 } from "../../application/ports/claude-gateway";
 import type { GeneratedQuestion } from "../../domain/question";
-import { DEFAULT_MODEL, type TokenUsage } from "../../domain/usage";
+import type { TokenUsage } from "../../domain/usage";
 
 export interface ScriptedTopics {
   topics: string[];
@@ -76,7 +76,7 @@ export function createFakeClaudeGateway() {
       if (next instanceof Error) throw next;
       return {
         output: { topics: next.topics },
-        model: next.model ?? DEFAULT_MODEL,
+        model: next.model ?? request.model,
         usage: { ...defaultUsage, ...next.usage },
       };
     },
@@ -100,7 +100,7 @@ export function createFakeClaudeGateway() {
       }
       return {
         output: { questions: next.questions },
-        model: next.model ?? DEFAULT_MODEL,
+        model: next.model ?? request.model,
         usage: { ...defaultUsage, ...next.usage },
       };
     },
@@ -118,7 +118,7 @@ export function createFakeClaudeGateway() {
       });
       return {
         output: { answers },
-        model: scripted.model ?? DEFAULT_MODEL,
+        model: scripted.model ?? request.model,
         usage: { ...defaultUsage, ...scripted.usage },
       };
     },

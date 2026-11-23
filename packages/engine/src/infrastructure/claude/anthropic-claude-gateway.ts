@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { ClaudeOverloadedError, type ClaudeGateway } from "../../application/ports/claude-gateway";
-import { DEFAULT_MODEL, type Stage, type TokenUsage } from "../../domain/usage";
+import type { TokenUsage } from "../../domain/usage";
 
 const TopicsSchema = z.object({ topics: z.array(z.string()) });
 
@@ -56,14 +56,11 @@ function toUsage(usage: Anthropic.Usage): TokenUsage {
 
 export interface AnthropicGatewayOptions {
   apiKey: string;
-  /** Model per Stage. Defaults to Opus 5.5 for all of them. */
-  modelFor?: (stage: Stage) => string;
 }
 
 /** Real adapter: Messages API with structured output validated by schema (no forced tool use, no prefill). */
 export function createAnthropicClaudeGateway({
   apiKey,
-  modelFor = () => DEFAULT_MODEL,
 }: AnthropicGatewayOptions): ClaudeGateway {
   const client = new Anthropic({ apiKey });
 
@@ -78,8 +75,7 @@ export function createAnthropicClaudeGateway({
   }
 
   return {
-    async extractTopics({ goal }) {
-      const model = modelFor("topic-extraction");
+    async extractTopics({ goal, model }) {
       return guarded(async () => {
         const message = await client.messages.parse({
           model,
@@ -93,8 +89,7 @@ export function createAnthropicClaudeGateway({
       });
     },
 
-    async generateQuestions({ goal, topic, difficulty, count }) {
-      const model = modelFor("question-generation");
+    async generateQuestions({ goal, topic, difficulty, count, model }) {
       return guarded(async () => {
         const message = await client.messages.parse({
           model,
@@ -114,8 +109,7 @@ export function createAnthropicClaudeGateway({
       });
     },
 
-    async resolveBlind({ questions }) {
-      const model = modelFor("blind-resolution");
+    async resolveBlind({ questions, model }) {
       const text = questions
         .map((q, i) => `Pergunta ${i + 1}: ${q.prompt}\n${q.alternatives.map((a, j) => `  ${j}. ${a}`).join("\n")}`)
         .join("\n\n");

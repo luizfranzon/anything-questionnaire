@@ -4,7 +4,9 @@ import type { ClaudeGateway } from "./application/ports/claude-gateway";
 import type { Random } from "./domain/performance";
 import { systemClock, type Clock } from "./application/ports/clock";
 import { createRoundUseCases } from "./application/use-cases/round-use-cases";
+import { createSettingsUseCases } from "./application/use-cases/settings-use-cases";
 import { createStudyUseCases } from "./application/use-cases/study-use-cases";
+import { createDrizzleSettingsRepository } from "./infrastructure/db/drizzle-settings-repository";
 import { createTopicProposalUseCases } from "./application/use-cases/topic-proposal-use-cases";
 import {
   createAnthropicClaudeGateway,
@@ -54,6 +56,7 @@ export {
   type TopicPerformance,
 } from "./domain/performance";
 export { REVIEW_DEFAULTS } from "./domain/review";
+export { STAGES, type ModelPrice, type Settings } from "./domain/settings";
 export type { Stage, TokenUsage, UsageRecord } from "./domain/usage";
 export type { ClaudeGateway } from "./application/ports/claude-gateway";
 export type { Clock } from "./application/ports/clock";
@@ -90,6 +93,10 @@ export async function createEngine(options: EngineOptions) {
   const topics = createDrizzleTopicRepository(db);
   const usage = createDrizzleUsageRepository(db);
 
+  const { modelFor, ...settingsOperations } = createSettingsUseCases(
+    createDrizzleSettingsRepository(db),
+  );
+
   const topicProposals = createTopicProposalUseCases({
     studies,
     proposals: createDrizzleProposalRepository(db),
@@ -97,6 +104,7 @@ export async function createEngine(options: EngineOptions) {
     usage,
     queue: await queues.queue("topic-proposal"),
     claude,
+    modelFor,
     clock,
   });
   const roundUseCases = createRoundUseCases({
@@ -106,6 +114,7 @@ export async function createEngine(options: EngineOptions) {
     usage,
     queue: await queues.queue("round-generation"),
     claude,
+    modelFor,
     clock,
     random: options.random,
   });
@@ -116,6 +125,7 @@ export async function createEngine(options: EngineOptions) {
 
   return {
     ...createStudyUseCases(studies),
+    ...settingsOperations,
     ...proposalOperations,
     ...roundOperations,
     /** Runs all ready jobs, including retries, to completion. Meant for tests and scripts. */

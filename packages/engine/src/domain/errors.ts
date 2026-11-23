@@ -22,7 +22,10 @@ export type DomainErrorCode =
   | "NOT_ANSWERED"
   | "CONFIDENCE_NOT_APPLICABLE"
   | "CONFIDENCE_REQUIRED"
-  | "CONFIDENCE_GIVEN_WITH_ANSWER";
+  | "CONFIDENCE_GIVEN_WITH_ANSWER"
+  | "STAGE_NOT_FOUND"
+  | "MODEL_NOT_OFFERED"
+  | "PRICE_INVALID";
 
 /** A business rule was violated. Carries a stable code; presentation decides the user-facing text. */
 export class DomainError extends Error {

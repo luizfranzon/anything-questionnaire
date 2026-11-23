@@ -26,6 +26,9 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   CONFIDENCE_NOT_APPLICABLE: "A Confiança só vale para acertos.",
   CONFIDENCE_REQUIRED: "Marque a Confiança antes de responder.",
   CONFIDENCE_GIVEN_WITH_ANSWER: "No simulado, a Confiança é enviada junto com a Resposta.",
+  STAGE_NOT_FOUND: "Essa Etapa não existe.",
+  MODEL_NOT_OFFERED: "Esse modelo não está disponível para escolha.",
+  PRICE_INVALID: "Informe preços de 0 ou mais em todos os campos.",
 };
 
 export const GENERIC_SAVE_ERROR = "Não foi possível gravar. Confira se o aplicativo está rodando e tente de novo.";

@@ -9,7 +9,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Padrão: tudo em Opus 5.5 e nos valores padrão do motor. */
+/** Padrão: tudo em Sonnet 5.5 e nos valores padrão do motor. */
 export const Padrao: Story = {};
 
 export const ValoresAlterados: Story = {

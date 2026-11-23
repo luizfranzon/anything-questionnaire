@@ -56,6 +56,21 @@ describe("Topic proposal", () => {
     expect(ctx.claude.calls.extractTopics).toHaveLength(3);
   });
 
+  it("ends the proposal as failed, and lets the user try again, for each typed Claude error", async () => {
+    for (const error of [
+      ctx.claude.credentialRejected(),
+      ctx.claude.usageLimitReached(new Date("2026-03-01T15:00:00Z")),
+      ctx.claude.offline(),
+    ]) {
+      const study = await newStudy();
+      ctx.claude.whenExtractingTopics(error);
+      await ctx.engine.requestTopicProposal(study.id);
+      await ctx.engine.drainJobs();
+      expect((await ctx.engine.getTopicProposal(study.id))?.phase).toBe("failed");
+      expect(await ctx.engine.listUsageRecords({ studyId: study.id })).toEqual([]);
+    }
+  });
+
   it("fails after exhausting the retries and can be requested again", async () => {
     const study = await newStudy();
     ctx.claude.whenExtractingTopics(ctx.claude.overloaded());
@@ -134,6 +149,19 @@ describe("Topic approval", () => {
 });
 
 describe("Usage records", () => {
+  it("keeps a token count the adapter did not report as absent, distinct from zero", async () => {
+    const study = await newStudy();
+    ctx.claude.whenExtractingTopics({
+      topics: ["IAM"],
+      usage: { inputTokens: 50, outputTokens: 10, cacheReadTokens: null, cacheWriteTokens: 0 },
+    });
+    await ctx.engine.requestTopicProposal(study.id);
+    await ctx.engine.drainJobs();
+
+    const [record] = await ctx.engine.listUsageRecords({ studyId: study.id });
+    expect(record).toMatchObject({ inputTokens: 50, outputTokens: 10, cacheReadTokens: null, cacheWriteTokens: 0 });
+  });
+
   it("records one entry per successful Claude call with Stage, model, Study, tokens and date", async () => {
     const study = await newStudy();
     ctx.clock.set(new Date("2026-03-01T10:00:00Z"));

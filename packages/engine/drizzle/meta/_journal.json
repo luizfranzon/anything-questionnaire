@@ -43,6 +43,13 @@
       "when": 1795392911249,
       "tag": "0005_slow_captain_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795393385512,
+      "tag": "0006_cute_nekra",
+      "breakpoints": true
     }
   ]
 }

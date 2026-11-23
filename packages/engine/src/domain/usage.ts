@@ -11,8 +11,9 @@ export const DEFAULT_MODEL = "claude-sonnet-5-5";
 export interface TokenUsage {
   inputTokens: number;
   outputTokens: number;
-  cacheReadTokens: number;
-  cacheWriteTokens: number;
+  /** `null` when the adapter does not report it, which is not the same as zero. */
+  cacheReadTokens: number | null;
+  cacheWriteTokens: number | null;
 }
 
 /** One entry per Claude call. */

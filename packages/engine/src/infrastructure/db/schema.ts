@@ -148,7 +148,7 @@ export const usageRecords = pgTable("usage_records", {
   roundId: uuid("round_id").references(() => rounds.id, { onDelete: "set null" }),
   inputTokens: integer("input_tokens").notNull(),
   outputTokens: integer("output_tokens").notNull(),
-  cacheReadTokens: integer("cache_read_tokens").notNull(),
-  cacheWriteTokens: integer("cache_write_tokens").notNull(),
+  cacheReadTokens: integer("cache_read_tokens"),
+  cacheWriteTokens: integer("cache_write_tokens"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 });

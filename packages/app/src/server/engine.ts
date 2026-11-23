@@ -8,7 +8,11 @@ export function getEngine(): Promise<Engine> {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) throw new Error("DATABASE_URL is not set. See .env.example.");
     await runMigrations(databaseUrl);
-    return createEngine({ databaseUrl, anthropicApiKey: process.env.ANTHROPIC_API_KEY });
+    return createEngine({
+      databaseUrl,
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+      claudeSubscriptionToken: process.env.CLAUDE_CODE_OAUTH_TOKEN,
+    });
   })().catch((error) => {
     instance = undefined; // do not cache a failed start-up; the next call retries
     throw error;

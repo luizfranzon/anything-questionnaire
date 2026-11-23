@@ -44,6 +44,30 @@ export class ClaudeOverloadedError extends Error {
   }
 }
 
+/** The Credencial was rejected (invalid, expired or revoked). Retrying will not help until the user renews it. */
+export class ClaudeCredentialError extends Error {
+  constructor() {
+    super("Claude rejected the credential");
+    this.name = "ClaudeCredentialError";
+  }
+}
+
+/** The usage limit of the plan or account was reached. `resetsAt` is when it renews, when Claude says so. */
+export class ClaudeUsageLimitError extends Error {
+  constructor(public readonly resetsAt?: Date) {
+    super("Claude usage limit reached");
+    this.name = "ClaudeUsageLimitError";
+  }
+}
+
+/** Claude could not be reached. Transient. */
+export class ClaudeNetworkError extends Error {
+  constructor(cause?: unknown) {
+    super("Could not reach Claude", { cause });
+    this.name = "ClaudeNetworkError";
+  }
+}
+
 /** Port to Claude: one operation per Stage. More operations arrive with their tickets. */
 export interface ClaudeGateway {
   extractTopics(request: ExtractTopicsRequest): Promise<StageResult<{ topics: string[] }>>;

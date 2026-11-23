@@ -12,6 +12,7 @@ import {
   createAnthropicClaudeGateway,
   createUnconfiguredClaudeGateway,
 } from "./infrastructure/claude/anthropic-claude-gateway";
+import { createSubscriptionClaudeGateway } from "./infrastructure/claude/subscription-claude-gateway";
 import { createDrizzleRoundRepository } from "./infrastructure/db/drizzle-round-repository";
 import {
   createDrizzleProposalRepository,
@@ -59,6 +60,12 @@ export { REVIEW_DEFAULTS } from "./domain/review";
 export { STAGES, type ModelPrice, type Settings } from "./domain/settings";
 export type { Stage, TokenUsage, UsageRecord } from "./domain/usage";
 export type { ClaudeGateway } from "./application/ports/claude-gateway";
+export {
+  ClaudeCredentialError,
+  ClaudeNetworkError,
+  ClaudeOverloadedError,
+  ClaudeUsageLimitError,
+} from "./application/ports/claude-gateway";
 export type { Clock } from "./application/ports/clock";
 export {
   createFakeClaudeGateway,
@@ -68,8 +75,10 @@ export {
 
 export interface EngineOptions {
   databaseUrl: string;
-  /** Real adapter credentials. Ignored when `claude` is given. */
+  /** Real adapter credentials. Ignored when `claude` is given. The API key wins when both are set. */
   anthropicApiKey?: string;
+  /** Token from `claude setup-token`: uses the subscription through the Agent SDK. */
+  claudeSubscriptionToken?: string;
   /** Replaces the Claude gateway (tests pass the fake). */
   claude?: ClaudeGateway;
   clock?: Clock;
@@ -88,6 +97,8 @@ export async function createEngine(options: EngineOptions) {
     options.claude ??
     (options.anthropicApiKey
       ? createAnthropicClaudeGateway({ apiKey: options.anthropicApiKey })
+      : options.claudeSubscriptionToken
+        ? createSubscriptionClaudeGateway({ oauthToken: options.claudeSubscriptionToken })
       : createUnconfiguredClaudeGateway());
   const clock = options.clock ?? systemClock;
   const topics = createDrizzleTopicRepository(db);

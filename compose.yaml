@@ -23,6 +23,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-questionnaire}:${POSTGRES_PASSWORD:-questionnaire}@db:5432/${POSTGRES_DB:-questionnaire}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
       SOURCES_DIR: /data/sources
       HOST: 0.0.0.0
       PORT: 3000

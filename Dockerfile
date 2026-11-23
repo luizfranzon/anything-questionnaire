@@ -14,6 +14,10 @@ WORKDIR /app
 ENV NODE_ENV=production \
     MIGRATIONS_DIR=/app/drizzle
 COPY --from=build /app/packages/app/.output ./.output
+# The Agent SDK (subscription access) runs the Claude Code binary, which ships as a per-platform package
+# that the bundle cannot carry. It is resolved from /app/node_modules. Keep the version in sync with
+# packages/engine/package.json.
+RUN npm install --omit=dev --no-save --no-package-lock --no-audit --no-fund @anthropic-ai/claude-agent-sdk@0.3.330
 COPY --from=build /app/packages/engine/drizzle ./drizzle
 EXPOSE 3000
 CMD ["node", ".output/server/index.mjs"]

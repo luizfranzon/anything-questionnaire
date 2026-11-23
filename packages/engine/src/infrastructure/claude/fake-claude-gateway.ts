@@ -1,5 +1,8 @@
 import {
+  ClaudeCredentialError,
+  ClaudeNetworkError,
   ClaudeOverloadedError,
+  ClaudeUsageLimitError,
   type ClaudeGateway,
   type ExtractTopicsRequest,
   type GenerateQuestionsRequest,
@@ -137,6 +140,9 @@ export function createFakeClaudeGateway() {
       resolutionScript = [...responses];
     },
     overloaded: () => new ClaudeOverloadedError(),
+    credentialRejected: () => new ClaudeCredentialError(),
+    usageLimitReached: (resetsAt?: Date) => new ClaudeUsageLimitError(resetsAt),
+    offline: () => new ClaudeNetworkError(),
   };
 }
 

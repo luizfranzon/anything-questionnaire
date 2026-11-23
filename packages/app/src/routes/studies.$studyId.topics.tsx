@@ -41,7 +41,7 @@ function TopicsRoute() {
   // A Study with no Topics and no proposal yet: ask Claude right away.
   useEffect(() => {
     if (!initial && topicCount === 0) void request();
-    else if (!initial) void navigate({ to: "/studies" });
+    else if (!initial) void navigate({ to: "/studies/$studyId", params: { studyId: study.id } });
   }, []);
 
   // The job runs on the server: poll its status while it is in flight.
@@ -64,6 +64,7 @@ function TopicsRoute() {
       saving={saving}
       saveError={saveError}
       onRetry={() => void request()}
+      onBack={() => void navigate({ to: "/studies/$studyId", params: { studyId: study.id } })}
       onApprove={async (topics) => {
         setSaving(true);
         setSaveError(undefined);
@@ -74,7 +75,7 @@ function TopicsRoute() {
             setSaving(false);
             return;
           }
-          await navigate({ to: "/studies" });
+          await navigate({ to: "/studies/$studyId", params: { studyId: study.id } });
         } catch {
           setSaveError(GENERIC_SAVE_ERROR);
           setSaving(false);

@@ -66,7 +66,7 @@ function NewRoundRoute() {
       generated={round ? { done: round.generated, total: round.count } : undefined}
       submitting={submitting}
       submitError={submitError}
-      onBack={() => void navigate({ to: "/studies" })}
+      onBack={() => void navigate({ to: "/studies/$studyId", params: { studyId: study.id } })}
       onSubmit={async ({ count, mode, topicIds }) => {
         setSubmitting(true);
         setSubmitError(undefined);

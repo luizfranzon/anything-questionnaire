@@ -66,6 +66,15 @@ function toTypedError({ assistantError, apiStatus, resetsAt, text }: Failure): E
   return new Error(`Claude failed: ${text || assistantError || "unknown error"}`);
 }
 
+/**
+ * The Claude Code CLI validates `--json-schema` offline and cannot resolve the `$schema` meta-schema URL that
+ * Zod emits (draft 2020-12): it exits with code 1. The keyword is only a hint, so it is dropped.
+ */
+function outputSchema(schema: z.ZodType): Record<string, unknown> {
+  const { $schema: _meta, ...rest } = z.toJSONSchema(schema) as Record<string, unknown>;
+  return rest;
+}
+
 function isNetworkFailure(error: unknown): boolean {
   const code = (error as { code?: unknown } | null)?.code ?? (error as { cause?: { code?: unknown } } | null)?.cause?.code;
   return typeof code === "string" && NETWORK_ERROR_CODES.has(code);
@@ -104,7 +113,7 @@ export function createSubscriptionClaudeGateway({
     return { ...rest, CLAUDE_CODE_OAUTH_TOKEN: oauthToken };
   }
 
-  /** One single-turn call. Returns the successful result message, or throws the typed error it failed with. */
+  /** One call (single-turn without a schema). Returns the successful result message, or throws the typed error it failed with. */
   async function run(call: {
     system: string;
     message: string;
@@ -118,7 +127,8 @@ export function createSubscriptionClaudeGateway({
         options: {
           model: call.model,
           systemPrompt: call.system,
-          maxTurns: 1,
+          // Structured output is delivered through a synthetic tool call, which needs a turn beyond the answer itself.
+          maxTurns: call.schema ? 5 : 1,
           tools: [],
           settingSources: [],
           persistSession: false,
@@ -126,7 +136,7 @@ export function createSubscriptionClaudeGateway({
           cwd: tmpdir(),
           env: environment(),
           ...(call.schema
-            ? { outputFormat: { type: "json_schema", schema: z.toJSONSchema(call.schema) as Record<string, unknown> } }
+            ? { outputFormat: { type: "json_schema", schema: outputSchema(call.schema) } }
             : {}),
         },
       });

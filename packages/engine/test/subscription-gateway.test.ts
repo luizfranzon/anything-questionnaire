@@ -65,7 +65,7 @@ describe("Subscription adapter: contract with the Agent SDK", () => {
     expect(prompt).toContain("Pass the SAA-C03 exam");
     expect(options).toMatchObject({
       model: MODEL,
-      maxTurns: 1,
+      maxTurns: 5,
       tools: [],
       settingSources: [],
       persistSession: false,
@@ -109,7 +109,7 @@ describe("Subscription adapter: contract with the Agent SDK", () => {
     expect(generation.sdk.calls[0].prompt).toContain("IAM");
     expect(resolved.output.answers).toEqual([0, null]);
     for (const { options } of [...generation.sdk.calls, ...resolution.sdk.calls]) {
-      expect(options).toMatchObject({ maxTurns: 1, tools: [], settingSources: [] });
+      expect(options).toMatchObject({ maxTurns: 5, tools: [], settingSources: [] });
     }
   });
 

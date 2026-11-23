@@ -65,7 +65,19 @@ export async function createPgBossJobQueues(
           await boss.work<{ recordId: string }>(
             name,
             { batchSize: 1, pollingIntervalSeconds: options.pollingIntervalSeconds },
-            async ([job]) => handler(job.data.recordId),
+            async ([job]) => {
+              const label = `[job ${name}] record=${job.data.recordId} attempt=${job.retryCount + 1}`;
+              const startedAt = Date.now();
+              console.log(`${label} started`);
+              try {
+                await handler(job.data.recordId);
+                console.log(`${label} completed in ${Date.now() - startedAt}ms`);
+              } catch (error) {
+                const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+                console.error(`${label} failed after ${Date.now() - startedAt}ms: ${message}`);
+                throw error;
+              }
+            },
           );
         },
 

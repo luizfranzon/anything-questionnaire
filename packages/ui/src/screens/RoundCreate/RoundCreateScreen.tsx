@@ -108,8 +108,9 @@ export function RoundCreateScreen({
         {header}
         <div className="round-create__generation">
           {phase === "retrying" && (
-            <InlineAlert tone="warn" title="O Claude está sobrecarregado">
-              A geração falhou por um erro passageiro e está sendo tentada de novo. Nada para fazer por enquanto.
+            <InlineAlert tone="warn" title="A geração falhou e está sendo tentada de novo">
+              Pode ser um erro passageiro (como sobrecarga do Claude) ou um problema que se repete. Se continuar
+              falhando, o motivo exato está nos logs do servidor.
             </InlineAlert>
           )}
           {phase === "failed" && (

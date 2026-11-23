@@ -29,6 +29,8 @@ export interface StudyFormScreenProps {
   saveError?: string;
   onSubmit?: (values: StudyFormValues) => void;
   onCancel?: () => void;
+  /** Voltar para a lista; se omitido, usa onCancel. */
+  onBack?: () => void;
   onRetry?: () => void;
   /** Só para o Storybook: mostra os erros de validação sem precisar interagir. */
   showErrors?: boolean;
@@ -54,6 +56,7 @@ export function StudyFormScreen({
   saveError,
   onSubmit,
   onCancel,
+  onBack = onCancel,
   onRetry,
   showErrors,
 }: StudyFormScreenProps) {
@@ -74,7 +77,7 @@ export function StudyFormScreen({
   return (
     <AppShell current="studies" width="reading">
       <PageHeader
-        back={{ label: "Estudos", href: "#/estudos" }}
+        back={{ label: "Estudos", href: "#/estudos", onClick: onBack }}
         title={create ? "Novo Estudo" : "Editar Estudo"}
         description={
           create

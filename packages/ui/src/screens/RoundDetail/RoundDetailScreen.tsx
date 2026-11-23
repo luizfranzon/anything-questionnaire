@@ -20,6 +20,7 @@ export interface RoundDetailScreenProps {
   /** Só para o Storybook: abre o Trecho ou o formulário de Contestação já na carga. */
   initial?: { excerpt?: "ready" | "loading" | "error" | "unavailable"; contestItem?: string; expanded?: string[] };
   onRetry?: () => void;
+  onBack?: () => void;
 }
 
 /** Tickets 07, 09 e 17: rever uma Rodada, com a correção completa de cada Pergunta. */
@@ -32,6 +33,7 @@ export function RoundDetailScreen({
   status = "ready",
   initial,
   onRetry,
+  onBack,
 }: RoundDetailScreenProps) {
   const [excerpt, setExcerpt] = useState<{ itemId: string; index: number } | undefined>(
     initial?.excerpt && items[0] ? { itemId: items[0].id, index: 0 } : undefined,
@@ -50,7 +52,7 @@ export function RoundDetailScreen({
   return (
     <AppShell current="studies" width="content">
       <PageHeader
-        back={{ label: studyName, href: "#/estudos/1" }}
+        back={{ label: studyName, href: "#/estudos/1", onClick: onBack }}
         title={`Rodada de ${date}`}
         meta={
           <>

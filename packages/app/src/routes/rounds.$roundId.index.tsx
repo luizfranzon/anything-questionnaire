@@ -7,7 +7,7 @@ import {
 } from "@anything-questionnaire/ui/screens/Question/QuestionScreen.tsx";
 import { answerQuestion, getNextQuestion, getRound, setAnswerConfidence } from "../server/rounds";
 
-export const Route = createFileRoute("/rounds/$roundId")({
+export const Route = createFileRoute("/rounds/$roundId/")({
   loader: async ({ params }) => {
     const round = await getRound({ data: params.roundId });
     if (!round.ok) throw notFound();
@@ -37,13 +37,13 @@ const CONFIDENCE: Record<"certeza" | "duvida", Confidence> = { certeza: "sure", 
 
 function PlayRoundRoute() {
   const { roundId } = Route.useParams();
-  const { mode, next: first } = Route.useLoaderData();
+  const { mode, next: first, studyId } = Route.useLoaderData();
   const navigate = useNavigate();
   const [next, setNext] = useState<NextQuestion>(first);
   const [question, setQuestion] = useState<QuestionData>(() => toQuestionData(first));
   const [status, setStatus] = useState<"ready" | "loading" | "error">("ready");
 
-  const leave = () => void navigate({ to: "/studies" });
+  const leave = () => void navigate({ to: "/studies/$studyId", params: { studyId } });
 
   return (
     <QuestionScreen

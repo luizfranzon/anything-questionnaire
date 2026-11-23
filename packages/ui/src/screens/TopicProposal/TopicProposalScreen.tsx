@@ -25,6 +25,7 @@ export interface TopicProposalScreenProps {
   saveError?: string;
   onRetry?: () => void;
   onApprove?: (topics: EditableTopic[]) => void;
+  onBack?: () => void;
 }
 
 let nextId = 1000;
@@ -39,13 +40,14 @@ export function TopicProposalScreen({
   saveError,
   onRetry,
   onApprove,
+  onBack,
 }: TopicProposalScreenProps) {
   const [topics, setTopics] = useState(initial);
 
   return (
     <AppShell current="studies" width="reading">
       <PageHeader
-        back={{ label: studyName, href: "#/estudos/1" }}
+        back={{ label: studyName, href: "#/estudos/1", onClick: onBack }}
         title={incremental ? "Tópicos novos" : "Tópicos propostos"}
         description={
           incremental
@@ -57,8 +59,9 @@ export function TopicProposalScreen({
       {(phase === "generating" || phase === "retrying") && (
         <div className="topic-proposal__progress">
           {phase === "retrying" && (
-            <InlineAlert tone="warn" title="O Claude está sobrecarregado">
-              A proposta falhou por um erro passageiro e está sendo tentada de novo. Nada para fazer por enquanto.
+            <InlineAlert tone="warn" title="A proposta falhou e está sendo tentada de novo">
+              Pode ser um erro passageiro (como sobrecarga do Claude) ou um problema que se repete. Se continuar
+              falhando, o motivo exato está nos logs do servidor.
             </InlineAlert>
           )}
           <ProgressBar

@@ -14,8 +14,12 @@ const NAV: { id: AppSection; label: string; icon: ReactNode }[] = [
   { id: "settings", label: "Configurações", icon: <Settings size={18} aria-hidden /> },
 ];
 
-/** Destinos que já existem no app. Métricas ainda não tem tela, então segue em `#`. */
-const DEFAULT_HREFS: Partial<Record<AppSection, string>> = { studies: "/studies", settings: "/settings" };
+/** Destinos que já existem no app. */
+const DEFAULT_HREFS: Partial<Record<AppSection, string>> = {
+  studies: "/studies",
+  metrics: "/metrics",
+  settings: "/settings",
+};
 
 export interface AppShellProps {
   /** Seção atual da navegação. Na variante `focus` não há navegação. */
@@ -24,7 +28,7 @@ export interface AppShellProps {
   variant?: "default" | "focus";
   /** Largura da área de conteúdo: `reading` 640px, `content` 960px, `wide` 1200px. */
   width?: AppShellWidth;
-  /** Destino de cada item. Sem valor, usa o destino padrão do app (Estudos e Configurações) ou `#`. */
+  /** Destino de cada item. Sem valor, usa o destino padrão do app. */
   hrefs?: Partial<Record<AppSection | "home", string>>;
   /** Chamado ao clicar num item; se existir, a navegação nativa é cancelada (para roteadores). */
   onNavigate?: (target: AppSection | "home") => void;

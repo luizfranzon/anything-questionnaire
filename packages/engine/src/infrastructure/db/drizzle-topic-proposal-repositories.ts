@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, gte, lte, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type {
   ProposalRepository,
@@ -89,12 +89,19 @@ export function createDrizzleUsageRepository(db: PostgresJsDatabase): UsageRepos
       await db.insert(usageRecords).values(record);
     },
 
-    async find({ studyId }) {
+    async find({ studyId, stage, from, to }) {
       if (studyId && !UUID_PATTERN.test(studyId)) return [];
       const rows = await db
         .select()
         .from(usageRecords)
-        .where(studyId ? eq(usageRecords.studyId, studyId) : undefined)
+        .where(
+          and(
+            studyId ? eq(usageRecords.studyId, studyId) : undefined,
+            stage ? eq(usageRecords.stage, stage) : undefined,
+            from ? gte(usageRecords.createdAt, from) : undefined,
+            to ? lte(usageRecords.createdAt, to) : undefined,
+          ),
+        )
         .orderBy(asc(usageRecords.createdAt));
       return rows.map(({ id: _id, stage, ...rest }) => ({ ...rest, stage: stage as Stage }));
     },

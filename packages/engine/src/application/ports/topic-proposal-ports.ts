@@ -1,5 +1,5 @@
 import type { Topic } from "../../domain/topic";
-import type { UsageRecord } from "../../domain/usage";
+import type { Stage, UsageRecord } from "../../domain/usage";
 
 export interface StoredProposal {
   id: string;
@@ -25,7 +25,15 @@ export interface TopicRepository {
   findActiveByStudy(studyId: string): Promise<Topic[]>;
 }
 
+export interface UsageFilter {
+  studyId?: string;
+  stage?: Stage;
+  from?: Date;
+  to?: Date;
+}
+
 export interface UsageRepository {
   insert(record: UsageRecord): Promise<void>;
-  find(filter: { studyId?: string }): Promise<UsageRecord[]>;
+  /** Every given filter must match; `from` and `to` are inclusive. */
+  find(filter: UsageFilter): Promise<UsageRecord[]>;
 }

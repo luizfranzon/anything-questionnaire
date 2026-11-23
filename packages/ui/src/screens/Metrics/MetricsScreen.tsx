@@ -45,6 +45,12 @@ export interface MetricsScreenProps {
   status?: "ready" | "loading" | "refetching" | "error";
   data?: MetricsData;
   initialFilters?: MetricsFilterValue;
+  /** Estudos do filtro. Padrão: os de exemplo do Storybook. */
+  studies?: { value: string; label: string }[];
+  /** Hoje, `aaaa-mm-dd`: o calendário não deixa escolher depois dele. */
+  today?: string;
+  /** Chamado a cada mudança de filtro, para a rota recarregar os números. */
+  onFiltersChange?: (filters: MetricsFilterValue) => void;
   /** Abre o gráfico direto na tabela equivalente. */
   initialView?: "chart" | "table";
   onRetry?: () => void;
@@ -63,10 +69,17 @@ export function MetricsScreen({
   status = "ready",
   data,
   initialFilters = DEFAULT_FILTERS,
+  studies = METRIC_STUDIES,
+  today = "2026-11-22",
+  onFiltersChange,
   initialView,
   onRetry,
 }: MetricsScreenProps) {
   const [filters, setFilters] = useState(initialFilters);
+  const changeFilters = (next: MetricsFilterValue) => {
+    setFilters(next);
+    onFiltersChange?.(next);
+  };
   const loading = status === "loading";
   const error = status === "error";
   const refetching = status === "refetching";
@@ -86,10 +99,10 @@ export function MetricsScreen({
       <div className="metrics__stack">
         <FilterBar
           value={filters}
-          onChange={setFilters}
-          studies={METRIC_STUDIES}
+          onChange={changeFilters}
+          studies={studies}
           stages={METRIC_STAGES.map((s) => ({ value: s.id, label: s.label }))}
-          today="2026-11-22"
+          today={today}
           loading={loading}
         />
 

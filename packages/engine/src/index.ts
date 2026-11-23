@@ -7,6 +7,7 @@ import { createFileKeyCipher } from "./infrastructure/crypto/file-key-cipher";
 import { createDrizzleCredentialRepository } from "./infrastructure/db/drizzle-credential-repository";
 import type { Random } from "./domain/performance";
 import { systemClock, type Clock } from "./application/ports/clock";
+import { createMetricsUseCases } from "./application/use-cases/metrics-use-cases";
 import { createRoundUseCases } from "./application/use-cases/round-use-cases";
 import { createSettingsUseCases } from "./application/use-cases/settings-use-cases";
 import { createStudyUseCases } from "./application/use-cases/study-use-cases";
@@ -62,6 +63,8 @@ export {
 export { REVIEW_DEFAULTS } from "./domain/review";
 export { STAGES, type ModelPrice, type Settings } from "./domain/settings";
 export type { Stage, TokenUsage, UsageRecord } from "./domain/usage";
+export type { UsageBucket, UsageMetrics } from "./domain/metrics";
+export type { UsageFilter } from "./application/ports/topic-proposal-ports";
 export type { ClaudeGateway } from "./application/ports/claude-gateway";
 export {
   ClaudeCredentialError,
@@ -183,6 +186,7 @@ export async function createEngine(options: EngineOptions) {
   return {
     ...createStudyUseCases(studies),
     ...settingsOperations,
+    ...createMetricsUseCases(usage, settingsOperations.getSettings),
     ...credentialOperations,
     ...proposalOperations,
     ...roundOperations,

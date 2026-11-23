@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import type { CredentialStatus, Stage } from "@anything-questionnaire/engine";
+import type { CredentialStatus } from "@anything-questionnaire/engine";
 import { SettingsScreen } from "@anything-questionnaire/ui/screens/Settings/SettingsScreen.tsx";
 import { GENERIC_SAVE_ERROR, messageFor } from "../presentation/error-messages";
+import { STAGE_BY_SCREEN_ID } from "../presentation/stages";
 import { getCredentialStatus } from "../server/credentials";
 import { getSettings, setModelPrice, setStageModel } from "../server/settings";
 
@@ -22,15 +23,7 @@ function describeAccess(access: CredentialStatus): string {
   return `${ACCESS_NAME[access.method]} (${access.masked}), ${origin}.`;
 }
 
-/** The screen names Stages and models by short ids; the engine uses its own. */
-const STAGE_BY_SCREEN_ID: Record<string, Stage> = {
-  topics: "topic-extraction",
-  chunks: "excerpt-classification",
-  generate: "question-generation",
-  blind: "blind-resolution",
-  contest: "contestation-judgment",
-};
-
+/** The screen names models by short ids; the engine uses its own. */
 const MODEL_BY_SCREEN_ID: Record<string, string> = {
   fable: "claude-fable-5-2",
   opus: "claude-opus-5-5",

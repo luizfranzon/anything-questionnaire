@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import {
   ClaudeCredentialError,
+  ClaudeModelUnavailableError,
   ClaudeNetworkError,
   ClaudeOverloadedError,
   ClaudeUsageLimitError,
@@ -41,6 +42,7 @@ export function mapAnthropicError(error: unknown): unknown {
   if (!(error instanceof Anthropic.APIError)) return error;
   if (error.status === 529) return new ClaudeOverloadedError();
   if (error.status === 401 || error.status === 403) return new ClaudeCredentialError();
+  if (error.status === 404) return new ClaudeModelUnavailableError();
   if (error.status === 429) {
     const seconds = Number(error.headers?.get?.("retry-after"));
     return new ClaudeUsageLimitError(Number.isFinite(seconds) && seconds > 0 ? new Date(Date.now() + seconds * 1000) : undefined);
@@ -59,6 +61,12 @@ export function createAnthropicClaudeGateway({ apiKey, client = new Anthropic({ 
   }
 
   return {
+    async checkAccess({ model }) {
+      await guarded(() =>
+        client.messages.create({ model, max_tokens: 8, messages: [{ role: "user", content: "Responda apenas: ok" }] }),
+      );
+    },
+
     async extractTopics({ goal, model }) {
       return guarded(async () => {
         const message = await client.messages.parse({
@@ -104,10 +112,3 @@ export function createAnthropicClaudeGateway({ apiKey, client = new Anthropic({ 
   };
 }
 
-/** Used when no credential is configured: every call fails with a clear message. */
-export function createUnconfiguredClaudeGateway(): ClaudeGateway {
-  const fail = async (): Promise<never> => {
-    throw new Error("No Claude credential is set. Set ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN. See .env.example.");
-  };
-  return { extractTopics: fail, generateQuestions: fail, resolveBlind: fail };
-}

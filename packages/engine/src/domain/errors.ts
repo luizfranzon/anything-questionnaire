@@ -25,7 +25,14 @@ export type DomainErrorCode =
   | "CONFIDENCE_GIVEN_WITH_ANSWER"
   | "STAGE_NOT_FOUND"
   | "MODEL_NOT_OFFERED"
-  | "PRICE_INVALID";
+  | "PRICE_INVALID"
+  | "CREDENTIAL_REQUIRED"
+  | "CREDENTIAL_SECRET_REQUIRED"
+  | "ACCESS_METHOD_INVALID"
+  | "CREDENTIAL_INVALID"
+  | "CREDENTIAL_USAGE_LIMIT"
+  | "CREDENTIAL_NO_MODEL_ACCESS"
+  | "CREDENTIAL_NETWORK";
 
 /** A business rule was violated. Carries a stable code; presentation decides the user-facing text. */
 export class DomainError extends Error {

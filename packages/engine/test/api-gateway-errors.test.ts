@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
 import {
   ClaudeCredentialError,
+  ClaudeModelUnavailableError,
   ClaudeNetworkError,
   ClaudeOverloadedError,
   ClaudeUsageLimitError,
@@ -13,6 +14,9 @@ function failingWith(error: Error) {
   const client = {
     messages: {
       parse: async () => {
+        throw error;
+      },
+      create: async () => {
         throw error;
       },
     },
@@ -48,6 +52,31 @@ describe("API adapter: errors, the same as the subscription adapter", () => {
     await expect(
       extract(failingWith(new Anthropic.APIConnectionError({ message: "offline" }))),
     ).rejects.toBeInstanceOf(ClaudeNetworkError);
+  });
+
+  it("maps an unknown model to the model-unavailable error, when checking access", async () => {
+    await expect(
+      failingWith(apiError(404)).checkAccess({ model: "claude-haiku-5-5" }),
+    ).rejects.toBeInstanceOf(ClaudeModelUnavailableError);
+  });
+
+  it("checks access with a minimal call", async () => {
+    const calls: Array<Record<string, unknown>> = [];
+    const client = {
+      messages: {
+        create: async (params: Record<string, unknown>) => {
+          calls.push(params);
+          return {};
+        },
+      },
+    };
+    const gateway = createAnthropicClaudeGateway({ apiKey: "sk-test", client: client as never });
+
+    await gateway.checkAccess({ model: "claude-haiku-5-5" });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ model: "claude-haiku-5-5" });
+    expect(calls[0].max_tokens as number).toBeLessThanOrEqual(16);
   });
 
   it("lets other failures through unchanged", async () => {

@@ -13,9 +13,20 @@ Code, identifiers and comments are in English. Only text shown to the user is pt
 ## Run everything (Docker)
 
 ```sh
-cp .env.example .env   # set ANTHROPIC_API_KEY
+cp .env.example .env   # optional: see "Access to Claude" below
 docker compose up --build
 ```
+
+### Access to Claude
+
+On the first run the app opens a setup wizard. Pick the Method of access and paste the Credential:
+
+- **Subscription:** run `claude setup-token` on your computer (needs Claude Code installed) and paste the token.
+- **API key:** paste an Anthropic API key.
+
+The Credential is saved only after a minimal real call with it succeeds. It is stored encrypted in Postgres, with a master key generated on the first run and kept in the files volume (`sources-data`). You can switch Method or renew the Credential later in Settings.
+
+`ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` in `.env` skips the wizard and wins over the saved Credential (the API key wins when both are set).
 
 The app is exposed on `http://localhost:3000` only (bound to 127.0.0.1). Database migrations run automatically on the first request the app handles. Data lives in the `db-data` volume and Source files in `sources-data`.
 

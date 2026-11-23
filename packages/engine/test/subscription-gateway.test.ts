@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ClaudeCredentialError,
+  ClaudeModelUnavailableError,
   ClaudeNetworkError,
   ClaudeOverloadedError,
   ClaudeUsageLimitError,
@@ -193,6 +194,22 @@ describe("Subscription adapter: errors", () => {
     await expect(
       extract(gatewayWith(Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" })).gateway),
     ).rejects.toBeInstanceOf(ClaudeNetworkError);
+  });
+
+  it("checks access with the same isolated single-turn call, asking for no structured output", async () => {
+    const { sdk, gateway } = gatewayWith([success(undefined)]);
+
+    await gateway.checkAccess({ model: "claude-haiku-5-5" });
+
+    expect(sdk.calls).toHaveLength(1);
+    expect(sdk.calls[0].options).toMatchObject({ model: "claude-haiku-5-5", maxTurns: 1, tools: [], settingSources: [] });
+    expect(sdk.calls[0].options.outputFormat).toBeUndefined();
+    expect(sdk.calls[0].options.env.CLAUDE_CODE_OAUTH_TOKEN).toBe("sk-ant-oat-test");
+  });
+
+  it("maps an account without access to the model, when checking access", async () => {
+    const { gateway } = gatewayWith([{ type: "assistant", error: "model_not_found", message: {} }, failure()]);
+    await expect(gateway.checkAccess({ model: "claude-haiku-5-5" })).rejects.toBeInstanceOf(ClaudeModelUnavailableError);
   });
 
   it("lets an unknown failure through unchanged", async () => {

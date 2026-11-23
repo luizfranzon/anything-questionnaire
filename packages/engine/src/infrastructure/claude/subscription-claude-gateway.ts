@@ -3,6 +3,7 @@ import { query as agentSdkQuery } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
 import {
   ClaudeCredentialError,
+  ClaudeModelUnavailableError,
   ClaudeNetworkError,
   ClaudeOverloadedError,
   ClaudeUsageLimitError,
@@ -57,6 +58,7 @@ function toTypedError({ assistantError, apiStatus, resetsAt, text }: Failure): E
   if ((assistantError && USAGE_LIMIT_ERRORS.has(assistantError)) || apiStatus === 429 || resetsAt !== undefined) {
     return new ClaudeUsageLimitError(resetsAt === undefined ? undefined : new Date(resetsAt * 1000));
   }
+  if (assistantError === "model_not_found" || apiStatus === 404) return new ClaudeModelUnavailableError();
   if (assistantError === "overloaded" || apiStatus === 529) return new ClaudeOverloadedError();
   if (assistantError === "server_error" || (apiStatus != null && apiStatus >= 500)) {
     return new ClaudeNetworkError(new Error(text));
@@ -102,16 +104,20 @@ export function createSubscriptionClaudeGateway({
     return { ...rest, CLAUDE_CODE_OAUTH_TOKEN: oauthToken };
   }
 
-  async function ask<T>(
-    stage: { system: string; schema: z.ZodType<T>; message: string; model: string },
-  ): Promise<StageResult<T>> {
+  /** One single-turn call. Returns the successful result message, or throws the typed error it failed with. */
+  async function run(call: {
+    system: string;
+    message: string;
+    model: string;
+    schema?: z.ZodType;
+  }): Promise<any> {
     const failure: Failure = { text: "" };
     try {
       const messages = query({
-        prompt: stage.message,
+        prompt: call.message,
         options: {
-          model: stage.model,
-          systemPrompt: stage.system,
+          model: call.model,
+          systemPrompt: call.system,
           maxTurns: 1,
           tools: [],
           settingSources: [],
@@ -119,7 +125,9 @@ export function createSubscriptionClaudeGateway({
           permissionMode: "dontAsk",
           cwd: tmpdir(),
           env: environment(),
-          outputFormat: { type: "json_schema", schema: z.toJSONSchema(stage.schema) as Record<string, unknown> },
+          ...(call.schema
+            ? { outputFormat: { type: "json_schema", schema: z.toJSONSchema(call.schema) as Record<string, unknown> } }
+            : {}),
         },
       });
 
@@ -134,8 +142,7 @@ export function createSubscriptionClaudeGateway({
             failure.text = message.result ?? message.errors?.join("; ") ?? "";
             throw toTypedError(failure);
           }
-          if (message.structured_output === undefined) throw new Error("Claude returned no structured output");
-          return { output: stage.schema.parse(message.structured_output), model: stage.model, usage: toUsage(message) };
+          return message;
         }
       }
       throw toTypedError({ ...failure, text: "the SDK ended without a result" });
@@ -145,7 +152,17 @@ export function createSubscriptionClaudeGateway({
     }
   }
 
+  async function ask<T>(stage: { system: string; schema: z.ZodType<T>; message: string; model: string }): Promise<StageResult<T>> {
+    const result = await run(stage);
+    if (result.structured_output === undefined) throw new Error("Claude returned no structured output");
+    return { output: stage.schema.parse(result.structured_output), model: stage.model, usage: toUsage(result) };
+  }
+
   return {
+    async checkAccess({ model }) {
+      await run({ system: "Responda de forma curta.", message: "Responda apenas: ok", model });
+    },
+
     extractTopics: ({ goal, model }) =>
       ask({ system: TOPIC_EXTRACTION_SYSTEM, schema: TopicsSchema, message: topicExtractionMessage(goal), model }),
 

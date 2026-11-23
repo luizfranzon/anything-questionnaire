@@ -1,6 +1,9 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import postgres from "postgres";
 import { randomUUID } from "node:crypto";
-import { createEngine, createFakeClaudeGateway, runMigrations } from "../src/index";
+import { createEngine, createFakeClaudeGateway, runMigrations, type Credential } from "../src/index";
 
 const ADMIN_URL =
   process.env.TEST_ADMIN_DATABASE_URL ?? "postgres://questionnaire:questionnaire@localhost:5432/postgres";
@@ -16,8 +19,16 @@ export function seeded(seed: number): () => number {
   };
 }
 
+export interface TestEngineOptions {
+  /**
+   * Runs the engine with managed Credentials (the wizard flow) instead of a fixed fake gateway. The fake gateway still
+   * answers, and `usedCredentials` lists the Credential each adapter was built from.
+   */
+  credentials?: { env?: { ANTHROPIC_API_KEY?: string; CLAUDE_CODE_OAUTH_TOKEN?: string }; dataDir?: string };
+}
+
 /** Creates a throwaway database, migrates it and returns an engine with fake adapters plus a cleanup function. */
-export async function createTestEngine() {
+export async function createTestEngine(testOptions: TestEngineOptions = {}) {
   const name = `test_${randomUUID().replace(/-/g, "")}`;
   const admin = postgres(ADMIN_URL, { max: 1 });
   await admin.unsafe(`CREATE DATABASE ${name}`);
@@ -33,9 +44,26 @@ export async function createTestEngine() {
   let draw: () => number = seeded(1);
   const random = { use: (next: () => number) => void (draw = next) };
 
+  const usedCredentials: Credential[] = [];
+  let dataDir: string | undefined;
+  if (testOptions.credentials) {
+    dataDir = testOptions.credentials.dataDir ?? (await mkdtemp(join(tmpdir(), "aq-test-")));
+  }
+
   const engine = await createEngine({
     databaseUrl: url.toString(),
-    claude: claude.gateway,
+    ...(testOptions.credentials
+      ? {
+          credentials: {
+            env: testOptions.credentials.env ?? {},
+            dataDir: dataDir!,
+            gatewayFor: (credential: Credential) => {
+              usedCredentials.push(credential);
+              return claude.gateway;
+            },
+          },
+        }
+      : { claude: claude.gateway }),
     clock,
     random: () => draw(),
     // Jobs are run by drainJobs(), not by background polling; retries have no delay.
@@ -46,10 +74,13 @@ export async function createTestEngine() {
     claude,
     clock,
     random,
+    usedCredentials,
+    dataDir,
     async cleanup() {
       await engine.close();
       await admin.unsafe(`DROP DATABASE ${name} WITH (FORCE)`);
       await admin.end();
+      if (dataDir && !testOptions.credentials?.dataDir) await rm(dataDir, { recursive: true, force: true });
     },
   };
 }

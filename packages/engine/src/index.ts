@@ -1,6 +1,10 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import type { ClaudeGateway } from "./application/ports/claude-gateway";
+import { createCredentialUseCases, type CredentialEnvironment } from "./application/use-cases/credential-use-cases";
+import type { Credential, CredentialStatus } from "./domain/credential";
+import { createFileKeyCipher } from "./infrastructure/crypto/file-key-cipher";
+import { createDrizzleCredentialRepository } from "./infrastructure/db/drizzle-credential-repository";
 import type { Random } from "./domain/performance";
 import { systemClock, type Clock } from "./application/ports/clock";
 import { createRoundUseCases } from "./application/use-cases/round-use-cases";
@@ -8,10 +12,7 @@ import { createSettingsUseCases } from "./application/use-cases/settings-use-cas
 import { createStudyUseCases } from "./application/use-cases/study-use-cases";
 import { createDrizzleSettingsRepository } from "./infrastructure/db/drizzle-settings-repository";
 import { createTopicProposalUseCases } from "./application/use-cases/topic-proposal-use-cases";
-import {
-  createAnthropicClaudeGateway,
-  createUnconfiguredClaudeGateway,
-} from "./infrastructure/claude/anthropic-claude-gateway";
+import { createAnthropicClaudeGateway } from "./infrastructure/claude/anthropic-claude-gateway";
 import { createSubscriptionClaudeGateway } from "./infrastructure/claude/subscription-claude-gateway";
 import { createDrizzleRoundRepository } from "./infrastructure/db/drizzle-round-repository";
 import {
@@ -73,13 +74,29 @@ export {
   type FakeClaudeGateway,
 } from "./infrastructure/claude/fake-claude-gateway";
 
+export type { Credential, AccessMethod, CredentialSource, CredentialStatus } from "./domain/credential";
+export type { CredentialEnvironment } from "./application/use-cases/credential-use-cases";
+
+function realGatewayFor(credential: Credential): ClaudeGateway {
+  return credential.method === "api-key"
+    ? createAnthropicClaudeGateway({ apiKey: credential.secret })
+    : createSubscriptionClaudeGateway({ oauthToken: credential.secret });
+}
+
 export interface EngineOptions {
   databaseUrl: string;
-  /** Real adapter credentials. Ignored when `claude` is given. The API key wins when both are set. */
-  anthropicApiKey?: string;
-  /** Token from `claude setup-token`: uses the subscription through the Agent SDK. */
-  claudeSubscriptionToken?: string;
-  /** Replaces the Claude gateway (tests pass the fake). */
+  /**
+   * How the engine gets its Credential: from the environment variables (which win) or the one saved in the wizard,
+   * kept encrypted in the database with a master key in `dataDir`. Required unless `claude` is given.
+   */
+  credentials?: {
+    env: CredentialEnvironment;
+    /** Directory of the files volume, where the master key lives. */
+    dataDir: string;
+    /** Builds the adapter for a Credential. Defaults to the real adapters; tests answer with the fake. */
+    gatewayFor?: (credential: Credential) => ClaudeGateway;
+  };
+  /** Replaces the Claude gateway and bypasses Credentials altogether (tests of other features pass the fake). */
   claude?: ClaudeGateway;
   clock?: Clock;
   /** Randomness for drawing Topics (`[0, 1)`). Tests pass a controllable one. */
@@ -93,20 +110,45 @@ export async function createEngine(options: EngineOptions) {
   const db = drizzle(client);
   const studies = createDrizzleStudyRepository(db);
   const queues = await createPgBossJobQueues(options.databaseUrl, options.queue);
-  const claude =
-    options.claude ??
-    (options.anthropicApiKey
-      ? createAnthropicClaudeGateway({ apiKey: options.anthropicApiKey })
-      : options.claudeSubscriptionToken
-        ? createSubscriptionClaudeGateway({ oauthToken: options.claudeSubscriptionToken })
-      : createUnconfiguredClaudeGateway());
   const clock = options.clock ?? systemClock;
   const topics = createDrizzleTopicRepository(db);
   const usage = createDrizzleUsageRepository(db);
 
-  const { modelFor, ...settingsOperations } = createSettingsUseCases(
+  const { modelFor, cheapestModel, ...settingsOperations } = createSettingsUseCases(
     createDrizzleSettingsRepository(db),
   );
+
+  let claude: ClaudeGateway;
+  let requireCredential: () => Promise<void>;
+  let credentialOperations: Pick<ReturnType<typeof createCredentialUseCases>, "getCredentialStatus" | "saveCredential">;
+  if (options.claude) {
+    claude = options.claude;
+    requireCredential = async () => {};
+    credentialOperations = {
+      getCredentialStatus: async (): Promise<CredentialStatus> => ({
+        configured: true,
+        method: "api-key",
+        masked: "",
+        source: "environment",
+      }),
+      saveCredential: async () => {
+        throw new Error("Credentials are not managed when a Claude gateway is injected.");
+      },
+    };
+  } else {
+    if (!options.credentials) throw new Error("createEngine needs `credentials` or `claude`.");
+    const { env, dataDir, gatewayFor = realGatewayFor } = options.credentials;
+    const managed = createCredentialUseCases({
+      credentials: createDrizzleCredentialRepository(db),
+      cipher: await createFileKeyCipher(dataDir),
+      env,
+      gatewayFor,
+      cheapestModel,
+    });
+    claude = managed.gateway;
+    requireCredential = managed.requireCredential;
+    credentialOperations = { getCredentialStatus: managed.getCredentialStatus, saveCredential: managed.saveCredential };
+  }
 
   const topicProposals = createTopicProposalUseCases({
     studies,
@@ -116,6 +158,7 @@ export async function createEngine(options: EngineOptions) {
     queue: await queues.queue("topic-proposal"),
     claude,
     modelFor,
+    requireCredential,
     clock,
   });
   const roundUseCases = createRoundUseCases({
@@ -126,6 +169,7 @@ export async function createEngine(options: EngineOptions) {
     queue: await queues.queue("round-generation"),
     claude,
     modelFor,
+    requireCredential,
     clock,
     random: options.random,
   });
@@ -137,6 +181,7 @@ export async function createEngine(options: EngineOptions) {
   return {
     ...createStudyUseCases(studies),
     ...settingsOperations,
+    ...credentialOperations,
     ...proposalOperations,
     ...roundOperations,
     /** Runs all ready jobs, including retries, to completion. Meant for tests and scripts. */

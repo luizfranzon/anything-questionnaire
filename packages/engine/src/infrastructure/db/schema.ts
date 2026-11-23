@@ -124,6 +124,14 @@ export const answers = pgTable(
   (t) => [uniqueIndex("answers_round_question_unique").on(t.roundId, t.questionId)],
 );
 
+/** The Credential saved in the wizard. At most one row: its key is always "default". The secret is encrypted. */
+export const credentials = pgTable("credentials", {
+  id: text("id").primaryKey().default("default"),
+  method: text("method", { enum: ["subscription", "api-key"] }).notNull(),
+  secret: text("secret").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** The model the user picked for a Stage. A Stage without a row uses the default model. */
 export const stageModels = pgTable("stage_models", {
   stage: text("stage").primaryKey(),

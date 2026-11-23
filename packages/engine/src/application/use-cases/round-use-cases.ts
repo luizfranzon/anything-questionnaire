@@ -50,6 +50,8 @@ interface Deps {
   queue: JobQueue;
   claude: ClaudeGateway;
   modelFor: (stage: Stage) => Promise<string>;
+  /** Throws CREDENTIAL_REQUIRED when there is no Credential, so work that needs Claude is not queued to fail. */
+  requireCredential: () => Promise<void>;
   clock: Clock;
   /** Source of randomness for drawing Topics; replaced in tests. */
   random?: Random;
@@ -81,6 +83,7 @@ export function createRoundUseCases({
   queue,
   claude,
   modelFor,
+  requireCredential,
   clock,
   random = Math.random,
 }: Deps) {
@@ -221,6 +224,7 @@ export function createRoundUseCases({
     async createRound(studyId: string, roundSettings: RoundSettings): Promise<Round> {
       const count = validateRoundCount(roundSettings.count);
       if (!(await studies.findById(studyId))) throw new DomainError("STUDY_NOT_FOUND");
+      await requireCredential();
 
       const active = await topics.findActiveByStudy(studyId);
       if (active.length === 0) throw new DomainError("NO_ACTIVE_TOPICS");

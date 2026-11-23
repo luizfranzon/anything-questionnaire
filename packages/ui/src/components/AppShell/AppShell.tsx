@@ -28,7 +28,7 @@ export interface AppShellProps {
   hrefs?: Partial<Record<AppSection | "home", string>>;
   /** Chamado ao clicar num item; se existir, a navegação nativa é cancelada (para roteadores). */
   onNavigate?: (target: AppSection | "home") => void;
-  /** Só na variante `focus`: rótulo e ação de sair da Rodada. */
+  /** Só na variante `focus`: rótulo e ação de sair. Sem `onExit`, o botão não aparece (telas que bloqueiam o app). */
   exitLabel?: string;
   onExit?: () => void;
   children: ReactNode;
@@ -100,11 +100,11 @@ export function AppShell({
                 })}
               </ul>
             </nav>
-          ) : (
+          ) : onExit ? (
             <Button variant="secondary" icon={<LogOut size={18} aria-hidden />} onClick={onExit}>
               {exitLabel}
             </Button>
-          )}
+          ) : null}
         </div>
       </header>
       <main id="app-shell-content" tabIndex={-1} className={`app-shell__main app-shell__main--${width}`}>

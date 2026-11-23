@@ -1,14 +1,26 @@
 import { useState } from "react";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import type { Stage } from "@anything-questionnaire/engine";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import type { CredentialStatus, Stage } from "@anything-questionnaire/engine";
 import { SettingsScreen } from "@anything-questionnaire/ui/screens/Settings/SettingsScreen.tsx";
 import { GENERIC_SAVE_ERROR, messageFor } from "../presentation/error-messages";
+import { getCredentialStatus } from "../server/credentials";
 import { getSettings, setModelPrice, setStageModel } from "../server/settings";
 
 export const Route = createFileRoute("/settings")({
-  loader: () => getSettings(),
+  loader: async () => {
+    const [settings, access] = await Promise.all([getSettings(), getCredentialStatus()]);
+    return { settings, access };
+  },
   component: SettingsRoute,
 });
+
+const ACCESS_NAME = { subscription: "Assinatura do Claude", "api-key": "Chave de API" } as const;
+
+function describeAccess(access: CredentialStatus): string {
+  if (!access.configured) return "Nenhuma Credencial configurada.";
+  const origin = access.source === "environment" ? "vem de uma variável de ambiente" : "guardada neste app";
+  return `${ACCESS_NAME[access.method]} (${access.masked}), ${origin}.`;
+}
 
 /** The screen names Stages and models by short ids; the engine uses its own. */
 const STAGE_BY_SCREEN_ID: Record<string, Stage> = {
@@ -35,7 +47,8 @@ const MODEL_LABELS: Record<string, string> = {
 };
 
 function SettingsRoute() {
-  const settings = Route.useLoaderData();
+  const { settings, access } = Route.useLoaderData();
+  const navigate = useNavigate();
   const router = useRouter();
   const [stageSaving, setStageSaving] = useState<string>();
   const [stageError, setStageError] = useState<Record<string, string>>({});
@@ -56,6 +69,7 @@ function SettingsRoute() {
 
   return (
     <SettingsScreen
+      access={{ summary: describeAccess(access), onOpen: () => navigate({ to: "/setup" }) }}
       initialModels={initialModels}
       initialPrices={initialPrices}
       stageSaving={stageSaving}

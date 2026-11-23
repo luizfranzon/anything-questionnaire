@@ -10,8 +10,14 @@ export function getEngine(): Promise<Engine> {
     await runMigrations(databaseUrl);
     return createEngine({
       databaseUrl,
-      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-      claudeSubscriptionToken: process.env.CLAUDE_CODE_OAUTH_TOKEN,
+      credentials: {
+        env: {
+          ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+          CLAUDE_CODE_OAUTH_TOKEN: process.env.CLAUDE_CODE_OAUTH_TOKEN,
+        },
+        // The master key lives in the files volume, away from the database.
+        dataDir: process.env.SOURCES_DIR ?? "./data",
+      },
     });
   })().catch((error) => {
     instance = undefined; // do not cache a failed start-up; the next call retries

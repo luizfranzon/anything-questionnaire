@@ -29,6 +29,15 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   STAGE_NOT_FOUND: "Essa Etapa não existe.",
   MODEL_NOT_OFFERED: "Esse modelo não está disponível para escolha.",
   PRICE_INVALID: "Informe preços de 0 ou mais em todos os campos.",
+  CREDENTIAL_REQUIRED: "Conecte o Claude antes de continuar.",
+  CREDENTIAL_SECRET_REQUIRED: "Cole o token ou a chave para continuar.",
+  ACCESS_METHOD_INVALID: "Escolha o Método de acesso.",
+  CREDENTIAL_INVALID:
+    "O Claude recusou a Credencial: ela pode estar errada, expirada ou revogada. Confira, gere outra se precisar e tente de novo.",
+  CREDENTIAL_USAGE_LIMIT: "A conta atingiu o limite de uso. Tente de novo quando o limite renovar.",
+  CREDENTIAL_NO_MODEL_ACCESS:
+    "Esta conta não tem acesso ao modelo usado no teste. Confira o plano ou use uma Chave de API.",
+  CREDENTIAL_NETWORK: "Não foi possível falar com o Claude. Confira a conexão e tente de novo.",
 };
 
 export const GENERIC_SAVE_ERROR = "Não foi possível gravar. Confira se o aplicativo está rodando e tente de novo.";

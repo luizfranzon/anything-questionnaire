@@ -37,6 +37,11 @@ export function validateModelPrice(model: string, price: ModelPrice): void {
   }
 }
 
+/** The offered model with the lowest input price, for calls that only need to prove access. */
+export function cheapestModel(prices: Record<string, ModelPrice>): string {
+  return Object.entries(prices).reduce((best, entry) => (entry[1].input < best[1].input ? entry : best))[0];
+}
+
 export interface Settings {
   stageModels: Record<Stage, string>;
   offeredModels: string[];

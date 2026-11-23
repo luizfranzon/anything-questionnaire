@@ -26,10 +26,22 @@ interface Deps {
   queue: JobQueue;
   claude: ClaudeGateway;
   modelFor: (stage: Stage) => Promise<string>;
+  /** Throws CREDENTIAL_REQUIRED when there is no Credential, so work that needs Claude is not queued to fail. */
+  requireCredential: () => Promise<void>;
   clock: Clock;
 }
 
-export function createTopicProposalUseCases({ studies, proposals, topics, usage, queue, claude, modelFor, clock }: Deps) {
+export function createTopicProposalUseCases({
+  studies,
+  proposals,
+  topics,
+  usage,
+  queue,
+  claude,
+  modelFor,
+  requireCredential,
+  clock,
+}: Deps) {
   async function toProposal(stored: StoredProposal): Promise<TopicProposal> {
     const base = { id: stored.id, studyId: stored.studyId };
     if (stored.topics) return { ...base, phase: "ready", topics: stored.topics };
@@ -69,6 +81,7 @@ export function createTopicProposalUseCases({ studies, proposals, topics, usage,
     /** Asks for a Topic proposal. Reuses one that is in flight or ready; replaces one that failed. */
     async requestTopicProposal(studyId: string): Promise<TopicProposal> {
       if (!(await studies.findById(studyId))) throw new DomainError("STUDY_NOT_FOUND");
+      await requireCredential();
 
       const existing = await proposals.findByStudy(studyId);
       if (existing) {

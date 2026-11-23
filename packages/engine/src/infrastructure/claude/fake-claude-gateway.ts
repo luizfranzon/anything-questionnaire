@@ -1,5 +1,6 @@
 import {
   ClaudeCredentialError,
+  ClaudeModelUnavailableError,
   ClaudeNetworkError,
   ClaudeOverloadedError,
   ClaudeUsageLimitError,
@@ -58,6 +59,8 @@ export function createFakeClaudeGateway() {
   let topicScript: Array<ScriptedTopics | Error> = [];
   let questionScript: QuestionScript[] = [];
   let resolutionScript: ResolutionScript[] = [];
+  /** Failures for `checkAccess`, consumed in order with the last repeating. Empty means it succeeds. */
+  let checkScript: Error[] = [];
   let serial = 0;
   /** What the fake wrote, by statement: lets it answer the blind resolution without being sent the Gabarito. */
   const truth = new Map<string, { alternatives: string[]; correctIndex: number }>();
@@ -65,6 +68,7 @@ export function createFakeClaudeGateway() {
     extractTopics: [] as ExtractTopicsRequest[],
     generateQuestions: [] as GenerateQuestionsRequest[],
     resolveBlind: [] as ResolveBlindRequest[],
+    checkAccess: [] as Array<{ model: string }>,
   };
 
   function nextOf<T>(script: T[]): T {
@@ -72,6 +76,11 @@ export function createFakeClaudeGateway() {
   }
 
   const gateway: ClaudeGateway = {
+    async checkAccess(request) {
+      calls.checkAccess.push(request);
+      if (checkScript.length > 0) throw nextOf(checkScript);
+    },
+
     async extractTopics(request): Promise<StageResult<{ topics: string[] }>> {
       calls.extractTopics.push(request);
       if (topicScript.length === 0) throw new Error("Fake Claude: no response scripted for topic extraction");
@@ -136,6 +145,10 @@ export function createFakeClaudeGateway() {
     whenGeneratingQuestions(...responses: QuestionScript[]) {
       questionScript = [...responses];
     },
+    /** Makes `checkAccess` fail with these errors. With none, it succeeds again. */
+    whenChecking(...errors: Error[]) {
+      checkScript = [...errors];
+    },
     whenResolvingBlind(...responses: ResolutionScript[]) {
       resolutionScript = [...responses];
     },
@@ -143,6 +156,7 @@ export function createFakeClaudeGateway() {
     credentialRejected: () => new ClaudeCredentialError(),
     usageLimitReached: (resetsAt?: Date) => new ClaudeUsageLimitError(resetsAt),
     offline: () => new ClaudeNetworkError(),
+    modelUnavailable: () => new ClaudeModelUnavailableError(),
   };
 }
 

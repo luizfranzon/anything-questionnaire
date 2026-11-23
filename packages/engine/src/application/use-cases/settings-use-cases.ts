@@ -1,4 +1,5 @@
 import {
+  cheapestModel,
   resolveSettings,
   validateModelPrice,
   validateStageModel,
@@ -26,6 +27,11 @@ export function createSettingsUseCases(settings: SettingsRepository) {
       validateModelPrice(model, price);
       await settings.setPrice(model, price);
       return getSettings();
+    },
+
+    /** The model that costs least per input token, using the prices the user set. */
+    async cheapestModel(): Promise<string> {
+      return cheapestModel((await getSettings()).prices);
     },
 
     /** The model the next call of this Stage must use. Used by the other use cases, not exposed by the engine. */

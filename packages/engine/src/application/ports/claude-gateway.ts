@@ -60,6 +60,14 @@ export class ClaudeUsageLimitError extends Error {
   }
 }
 
+/** The account has no access to the requested model (for example, a plan that does not include it). */
+export class ClaudeModelUnavailableError extends Error {
+  constructor() {
+    super("The model is not available to this account");
+    this.name = "ClaudeModelUnavailableError";
+  }
+}
+
 /** Claude could not be reached. Transient. */
 export class ClaudeNetworkError extends Error {
   constructor(cause?: unknown) {
@@ -68,8 +76,10 @@ export class ClaudeNetworkError extends Error {
   }
 }
 
-/** Port to Claude: one operation per Stage. More operations arrive with their tickets. */
+/** Port to Claude: one operation per Stage, plus a minimal access check. More operations arrive with their tickets. */
 export interface ClaudeGateway {
+  /** A minimal real call that proves the Credential works for this model. Throws the typed Claude errors above. */
+  checkAccess(request: { model: string }): Promise<void>;
   extractTopics(request: ExtractTopicsRequest): Promise<StageResult<{ topics: string[] }>>;
   generateQuestions(request: GenerateQuestionsRequest): Promise<StageResult<{ questions: GeneratedQuestion[] }>>;
   /**

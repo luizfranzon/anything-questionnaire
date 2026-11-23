@@ -97,6 +97,8 @@ export interface SettingsScreenProps {
   /** Só para o Storybook: mostra o erro de faixa sem precisar sair do campo. */
   showRangeErrors?: boolean;
   onRetry?: () => void;
+  /** Como o app acessa o Claude hoje, com a ação de trocar o Método de acesso ou renovar a Credencial (ticket 23). */
+  access?: { summary: string; onOpen: () => void };
   /** O usuário escolheu outro modelo para uma Etapa. */
   onStageModelChange?: (stageId: string, modelId: string) => void;
   /** O usuário terminou de editar uma linha da tabela de preços, com os quatro valores preenchidos. */
@@ -117,6 +119,7 @@ export function SettingsScreen({
   paramErrors,
   showRangeErrors,
   onRetry,
+  access,
   onStageModelChange,
   onPriceSave,
 }: SettingsScreenProps) {
@@ -155,6 +158,21 @@ export function SettingsScreen({
   return (
     <AppShell current="settings" width="content">
       {header}
+
+      {access && (
+        <section className="settings__section" aria-label="Acesso ao Claude">
+          <PageHeader
+            level="section"
+            title="Acesso ao Claude"
+            description={access.summary}
+            actions={
+              <Button variant="secondary" onClick={access.onOpen}>
+                Trocar ou renovar
+              </Button>
+            }
+          />
+        </section>
+      )}
 
       <section className="settings__section" aria-label="Modelo por Etapa">
         <PageHeader

@@ -108,6 +108,47 @@ export const getRoundCorrection = createServerFn({ method: "GET" })
     toResult(() => withEngine((engine) => engine.getRoundCorrection(roundId))),
   );
 
+export interface RoundHistoryDto {
+  id: string;
+  /** ISO timestamp; the screen formats it in the viewer's time zone. */
+  date: string;
+  mode: Round["mode"];
+  total: number;
+  answered: number;
+  /** `null` while a mock Round is unfinished. */
+  correct: number | null;
+}
+
+export interface RoundReviewDto {
+  date: string;
+  mode: Round["mode"];
+  total: number;
+  items: CorrectionItem[];
+}
+
+/** The Study's Rounds that were played, most recent first. */
+export const listRoundHistory = createServerFn({ method: "GET" })
+  .validator((studyId: string) => studyId)
+  .handler(({ data: studyId }): Promise<Result<RoundHistoryDto[]>> =>
+    toResult(() =>
+      withEngine(async (engine) =>
+        (await engine.listRoundHistory(studyId)).map((r) => ({ ...r, date: r.date.toISOString() })),
+      ),
+    ),
+  );
+
+/** A past Round with what was answered of it. The engine holds a mock Round back until it ends. */
+export const getRoundReview = createServerFn({ method: "GET" })
+  .validator((roundId: string) => roundId)
+  .handler(({ data: roundId }): Promise<Result<RoundReviewDto>> =>
+    toResult(() =>
+      withEngine(async (engine) => {
+        const review = await engine.getRoundReview(roundId);
+        return { ...review, date: review.date.toISOString() };
+      }),
+    ),
+  );
+
 export const getRoundResult = createServerFn({ method: "GET" })
   .validator((roundId: string) => roundId)
   .handler(({ data: roundId }): Promise<Result<RoundResult>> =>

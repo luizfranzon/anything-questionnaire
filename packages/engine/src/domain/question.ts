@@ -1,5 +1,5 @@
 import type { Difficulty } from "./performance";
-import type { AnswerOutcome, Confidence } from "./round";
+import type { AnswerOutcome, Confidence, RoundMode } from "./round";
 
 export type QuestionFormat = "multiple-choice" | "open";
 
@@ -81,6 +81,26 @@ export interface CorrectionItem extends Correction {
   question: PresentedQuestion;
   /** `null` is "Não sei". */
   pickedId: string | null;
+}
+
+/** One line of a Study's history of Rounds. */
+export interface RoundHistoryEntry {
+  id: string;
+  date: Date;
+  mode: RoundMode;
+  /** Questions of the Round. */
+  total: number;
+  answered: number;
+  /** Hits among the answered Questions; `null` while a mock Round is unfinished, so it does not leak the outcome. */
+  correct: number | null;
+}
+
+/** A past Round with what was answered of it. Questions never answered are not listed. */
+export interface RoundReview {
+  date: Date;
+  mode: RoundMode;
+  total: number;
+  items: CorrectionItem[];
 }
 
 export interface RoundResult {

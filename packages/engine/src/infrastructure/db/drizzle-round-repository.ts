@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lte, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { RoundRepository, StoredRound } from "../../application/ports/round-ports";
 import { answers, questionReviews, questions, roundQuestions, rounds, topics } from "./schema";
@@ -14,13 +14,24 @@ const toStored = (row: typeof rounds.$inferSelect): StoredRound => ({
   plan: row.plan,
   status: row.status,
   jobId: row.jobId,
+  createdAt: row.createdAt,
 });
 
 export function createDrizzleRoundRepository(db: PostgresJsDatabase): RoundRepository {
   return {
-    async insert(studyId, { count, mode, topicIds, plan }) {
-      const [row] = await db.insert(rounds).values({ studyId, count, mode, topicIds, plan }).returning();
+    async insert(studyId, { count, mode, topicIds, plan, createdAt }) {
+      const [row] = await db.insert(rounds).values({ studyId, count, mode, topicIds, plan, createdAt }).returning();
       return toStored(row);
+    },
+
+    async listByStudy(studyId) {
+      if (!UUID_PATTERN.test(studyId)) return [];
+      const rows = await db
+        .select()
+        .from(rounds)
+        .where(eq(rounds.studyId, studyId))
+        .orderBy(desc(rounds.createdAt), desc(rounds.id));
+      return rows.map(toStored);
     },
 
     async findById(id) {

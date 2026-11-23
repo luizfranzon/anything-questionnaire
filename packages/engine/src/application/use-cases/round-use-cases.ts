@@ -6,7 +6,9 @@ import {
   type Correction,
   type CorrectionItem,
   type NextQuestion,
+  type RoundHistoryEntry,
   type RoundResult,
+  type RoundReview,
 } from "../../domain/question";
 import {
   distributeEvenly,
@@ -127,6 +129,30 @@ export function createRoundUseCases({
     };
   }
 
+  /** The answered Questions of a Round in presented order, each with its correction. */
+  async function correctionItems(roundId: string): Promise<CorrectionItem[]> {
+    const [questions, answers] = await Promise.all([rounds.listQuestions(roundId), rounds.listAnswers(roundId)]);
+    const byQuestion = new Map(answers.map((a) => [a.questionId, a]));
+    return questions.flatMap((q, i) => {
+      const answer = byQuestion.get(q.id);
+      if (!answer) return [];
+      return [
+        {
+          ...toCorrection(q, answer.outcome, answer.confidence),
+          position: i + 1,
+          question: {
+            id: q.id,
+            topic: q.topicName,
+            format: q.format,
+            prompt: q.prompt,
+            alternatives: q.alternatives.map(({ id, text }) => ({ id, text })),
+          },
+          pickedId: answer.response,
+        },
+      ];
+    });
+  }
+
   /** Recomputes the Question's FSRS state from every Answer it has received. */
   async function reschedule(questionId: string): Promise<void> {
     const card = scheduleFromHistory(await rounds.listQuestionAnswers(questionId));
@@ -245,7 +271,13 @@ export function createRoundUseCases({
         allocation[i] > 0 ? [{ topicId: m.topicId, count: allocation[i], difficulty: difficultyFor(m.performance, settings) }] : [],
       );
 
-      const created = await rounds.insert(studyId, { count, mode: roundSettings.mode ?? "study", topicIds: requested, plan });
+      const created = await rounds.insert(studyId, {
+        count,
+        mode: roundSettings.mode ?? "study",
+        topicIds: requested,
+        plan,
+        createdAt: clock.now(),
+      });
       await rounds.attachReviews(created, reviewIds);
       const jobId = await queue.enqueue(created.id);
       await rounds.setJobId(created.id, jobId);
@@ -363,26 +395,39 @@ export function createRoundUseCases({
     async getRoundCorrection(roundId: string): Promise<CorrectionItem[]> {
       const round = await toRound(await requireReadyRound(roundId));
       if (round.phase !== "completed") throw new DomainError("ROUND_NOT_COMPLETED");
-      const [questions, answers] = await Promise.all([rounds.listQuestions(roundId), rounds.listAnswers(roundId)]);
-      const byQuestion = new Map(answers.map((a) => [a.questionId, a]));
-      return questions.flatMap((q, i) => {
-        const answer = byQuestion.get(q.id);
-        if (!answer) return [];
-        return [
-          {
-            ...toCorrection(q, answer.outcome, answer.confidence),
-            position: i + 1,
-            question: {
-              id: q.id,
-              topic: q.topicName,
-              format: q.format,
-              prompt: q.prompt,
-              alternatives: q.alternatives.map(({ id, text }) => ({ id, text })),
-            },
-            pickedId: answer.response,
-          },
-        ];
-      });
+      return correctionItems(roundId);
+    },
+
+    /** The Study's Rounds that have at least one Answer, most recent first. */
+    async listRoundHistory(studyId: string): Promise<RoundHistoryEntry[]> {
+      if (!(await studies.findById(studyId))) throw new DomainError("STUDY_NOT_FOUND");
+      const entries = await Promise.all(
+        (await rounds.listByStudy(studyId))
+          .filter((r) => r.status === "ready")
+          .map(async (r): Promise<RoundHistoryEntry | null> => {
+            const answers = await rounds.listAnswers(r.id);
+            if (answers.length === 0) return null;
+            // A mock Round keeps its hits secret until the last Answer.
+            const revealed = r.mode === "study" || answers.length >= r.count;
+            return {
+              id: r.id,
+              date: r.createdAt,
+              mode: r.mode,
+              total: r.count,
+              answered: answers.length,
+              correct: revealed ? answers.filter((a) => a.outcome === "correct").length : null,
+            };
+          }),
+      );
+      return entries.filter((e) => e !== null);
+    },
+
+    /** A past Round question by question. Study mode shows what was answered so far; mock mode only once it ends. */
+    async getRoundReview(roundId: string): Promise<RoundReview> {
+      const stored = await requireReadyRound(roundId);
+      const items = await correctionItems(roundId);
+      if (stored.mode === "mock" && items.length < stored.count) throw new DomainError("ROUND_NOT_COMPLETED");
+      return { date: stored.createdAt, mode: stored.mode, total: stored.count, items };
     },
 
     startWorker(): Promise<void> {

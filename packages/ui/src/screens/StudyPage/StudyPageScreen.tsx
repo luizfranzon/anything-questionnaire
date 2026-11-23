@@ -66,6 +66,8 @@ export interface StudyPageScreenProps {
   resuming?: boolean;
   onRetry?: () => void;
   onNewRound?: () => void;
+  /** Volta para a lista de Estudos (o app liga isso ao roteador). */
+  onBack?: () => void;
 }
 
 const PAGE_SIZE = 20;
@@ -90,6 +92,7 @@ export function StudyPageScreen({
   resuming,
   onRetry,
   onNewRound,
+  onBack,
 }: StudyPageScreenProps) {
   const [tab, setTab] = useState<StudyTabId>(initialTab);
   const [filters, setFilters] = useState(initialFilters);
@@ -102,7 +105,7 @@ export function StudyPageScreen({
   const bank = useMemoBank(data?.questions ?? [], filters);
 
   const header = (extra?: Partial<React.ComponentProps<typeof PageHeader>>) => (
-    <PageHeader back={{ label: "Estudos", href: "#/estudos" }} title={data?.name ?? "Estudo"} {...extra} />
+    <PageHeader back={{ label: "Estudos", href: "#/estudos", onClick: onBack }} title={data?.name ?? "Estudo"} {...extra} />
   );
 
   if (status === "error") {
@@ -128,7 +131,7 @@ export function StudyPageScreen({
   if (status === "loading" || !data) {
     return (
       <AppShell current="studies" width="content">
-        <PageHeader back={{ label: "Estudos", href: "#/estudos" }} title="" loading description="" actions={<Button disabled>Nova Rodada</Button>} />
+        <PageHeader back={{ label: "Estudos", href: "#/estudos", onClick: onBack }} title="" loading description="" actions={<Button disabled>Nova Rodada</Button>} />
         <SkeletonGroup label="Carregando o Estudo">
           <div className="study-page__loading">
             <Skeleton shape="block" height={40} />
@@ -190,7 +193,7 @@ export function StudyPageScreen({
       ) : (
         <ul className="study-page__list" aria-label="Histórico de Rodadas">
           {data.rounds.map((r) => (
-            <RoundHistoryRow key={r.id} {...r} href={`#/rodadas/${r.id}`} />
+            <RoundHistoryRow key={r.id} {...r} href={`/rounds/${r.id}/review`} />
           ))}
         </ul>
       )}
@@ -316,7 +319,7 @@ export function StudyPageScreen({
   return (
     <AppShell current="studies" width="content">
       <PageHeader
-        back={{ label: "Estudos", href: "#/estudos" }}
+        back={{ label: "Estudos", href: "#/estudos", onClick: onBack }}
         title={data.name}
         description={data.goal}
         meta={

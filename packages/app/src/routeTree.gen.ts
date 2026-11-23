@@ -12,10 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SetupRouteImport } from './routes/setup'
-import { Route as RoundsRoundIdRouteImport } from './routes/rounds.$roundId'
 import { Route as StudiesIndexRouteImport } from './routes/studies.index'
 import { Route as StudiesNewRouteImport } from './routes/studies.new'
+import { Route as RoundsRoundIdIndexRouteImport } from './routes/rounds.$roundId.index'
 import { Route as RoundsRoundIdResultRouteImport } from './routes/rounds.$roundId.result'
+import { Route as RoundsRoundIdReviewRouteImport } from './routes/rounds.$roundId.review'
 import { Route as StudiesStudyIdIndexRouteImport } from './routes/studies.$studyId.index'
 import { Route as StudiesStudyIdEditRouteImport } from './routes/studies.$studyId.edit'
 import { Route as StudiesStudyIdTopicsRouteImport } from './routes/studies.$studyId.topics'
@@ -36,11 +37,6 @@ const SetupRoute = SetupRouteImport.update({
   path: '/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RoundsRoundIdRoute = RoundsRoundIdRouteImport.update({
-  id: '/rounds/$roundId',
-  path: '/rounds/$roundId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const StudiesIndexRoute = StudiesIndexRouteImport.update({
   id: '/studies/',
   path: '/studies/',
@@ -51,10 +47,20 @@ const StudiesNewRoute = StudiesNewRouteImport.update({
   path: '/studies/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoundsRoundIdIndexRoute = RoundsRoundIdIndexRouteImport.update({
+  id: '/rounds/$roundId/',
+  path: '/rounds/$roundId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoundsRoundIdResultRoute = RoundsRoundIdResultRouteImport.update({
-  id: '/result',
-  path: '/result',
-  getParentRoute: () => RoundsRoundIdRoute,
+  id: '/rounds/$roundId/result',
+  path: '/rounds/$roundId/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoundsRoundIdReviewRoute = RoundsRoundIdReviewRouteImport.update({
+  id: '/rounds/$roundId/review',
+  path: '/rounds/$roundId/review',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const StudiesStudyIdIndexRoute = StudiesStudyIdIndexRouteImport.update({
   id: '/studies/$studyId/',
@@ -81,12 +87,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
-  '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies/': typeof StudiesIndexRoute
   '/rounds/$roundId/result': typeof RoundsRoundIdResultRoute
+  '/rounds/$roundId/review': typeof RoundsRoundIdReviewRoute
   '/studies/$studyId/edit': typeof StudiesStudyIdEditRoute
   '/studies/$studyId/topics': typeof StudiesStudyIdTopicsRoute
+  '/rounds/$roundId/': typeof RoundsRoundIdIndexRoute
   '/studies/$studyId/': typeof StudiesStudyIdIndexRoute
   '/studies/$studyId/rounds/new': typeof StudiesStudyIdRoundsNewRoute
 }
@@ -94,12 +101,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
-  '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies': typeof StudiesIndexRoute
   '/rounds/$roundId/result': typeof RoundsRoundIdResultRoute
+  '/rounds/$roundId/review': typeof RoundsRoundIdReviewRoute
   '/studies/$studyId/edit': typeof StudiesStudyIdEditRoute
   '/studies/$studyId/topics': typeof StudiesStudyIdTopicsRoute
+  '/rounds/$roundId': typeof RoundsRoundIdIndexRoute
   '/studies/$studyId': typeof StudiesStudyIdIndexRoute
   '/studies/$studyId/rounds/new': typeof StudiesStudyIdRoundsNewRoute
 }
@@ -108,12 +116,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
-  '/rounds/$roundId': typeof RoundsRoundIdRouteWithChildren
   '/studies/new': typeof StudiesNewRoute
   '/studies/': typeof StudiesIndexRoute
   '/rounds/$roundId/result': typeof RoundsRoundIdResultRoute
+  '/rounds/$roundId/review': typeof RoundsRoundIdReviewRoute
   '/studies/$studyId/edit': typeof StudiesStudyIdEditRoute
   '/studies/$studyId/topics': typeof StudiesStudyIdTopicsRoute
+  '/rounds/$roundId/': typeof RoundsRoundIdIndexRoute
   '/studies/$studyId/': typeof StudiesStudyIdIndexRoute
   '/studies/$studyId/rounds/new': typeof StudiesStudyIdRoundsNewRoute
 }
@@ -123,12 +132,13 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/setup'
-    | '/rounds/$roundId'
     | '/studies/new'
     | '/studies/'
     | '/rounds/$roundId/result'
+    | '/rounds/$roundId/review'
     | '/studies/$studyId/edit'
     | '/studies/$studyId/topics'
+    | '/rounds/$roundId/'
     | '/studies/$studyId/'
     | '/studies/$studyId/rounds/new'
   fileRoutesByTo: FileRoutesByTo
@@ -136,12 +146,13 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/setup'
-    | '/rounds/$roundId'
     | '/studies/new'
     | '/studies'
     | '/rounds/$roundId/result'
+    | '/rounds/$roundId/review'
     | '/studies/$studyId/edit'
     | '/studies/$studyId/topics'
+    | '/rounds/$roundId'
     | '/studies/$studyId'
     | '/studies/$studyId/rounds/new'
   id:
@@ -149,12 +160,13 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/setup'
-    | '/rounds/$roundId'
     | '/studies/new'
     | '/studies/'
     | '/rounds/$roundId/result'
+    | '/rounds/$roundId/review'
     | '/studies/$studyId/edit'
     | '/studies/$studyId/topics'
+    | '/rounds/$roundId/'
     | '/studies/$studyId/'
     | '/studies/$studyId/rounds/new'
   fileRoutesById: FileRoutesById
@@ -163,11 +175,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
-  RoundsRoundIdRoute: typeof RoundsRoundIdRouteWithChildren
   StudiesNewRoute: typeof StudiesNewRoute
   StudiesIndexRoute: typeof StudiesIndexRoute
+  RoundsRoundIdResultRoute: typeof RoundsRoundIdResultRoute
+  RoundsRoundIdReviewRoute: typeof RoundsRoundIdReviewRoute
   StudiesStudyIdEditRoute: typeof StudiesStudyIdEditRoute
   StudiesStudyIdTopicsRoute: typeof StudiesStudyIdTopicsRoute
+  RoundsRoundIdIndexRoute: typeof RoundsRoundIdIndexRoute
   StudiesStudyIdIndexRoute: typeof StudiesStudyIdIndexRoute
   StudiesStudyIdRoundsNewRoute: typeof StudiesStudyIdRoundsNewRoute
 }
@@ -195,13 +209,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rounds/$roundId': {
-      id: '/rounds/$roundId'
-      path: '/rounds/$roundId'
-      fullPath: '/rounds/$roundId'
-      preLoaderRoute: typeof RoundsRoundIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/studies/': {
       id: '/studies/'
       path: '/studies'
@@ -216,12 +223,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudiesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rounds/$roundId/': {
+      id: '/rounds/$roundId/'
+      path: '/rounds/$roundId'
+      fullPath: '/rounds/$roundId/'
+      preLoaderRoute: typeof RoundsRoundIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rounds/$roundId/result': {
       id: '/rounds/$roundId/result'
-      path: '/result'
+      path: '/rounds/$roundId/result'
       fullPath: '/rounds/$roundId/result'
       preLoaderRoute: typeof RoundsRoundIdResultRouteImport
-      parentRoute: typeof RoundsRoundIdRoute
+      parentRoute: typeof rootRouteImport
+    }
+    '/rounds/$roundId/review': {
+      id: '/rounds/$roundId/review'
+      path: '/rounds/$roundId/review'
+      fullPath: '/rounds/$roundId/review'
+      preLoaderRoute: typeof RoundsRoundIdReviewRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/studies/$studyId/': {
       id: '/studies/$studyId/'
@@ -254,27 +275,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface RoundsRoundIdRouteChildren {
-  RoundsRoundIdResultRoute: typeof RoundsRoundIdResultRoute
-}
-
-const RoundsRoundIdRouteChildren: RoundsRoundIdRouteChildren = {
-  RoundsRoundIdResultRoute: RoundsRoundIdResultRoute,
-}
-
-const RoundsRoundIdRouteWithChildren = RoundsRoundIdRoute._addFileChildren(
-  RoundsRoundIdRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
-  RoundsRoundIdRoute: RoundsRoundIdRouteWithChildren,
   StudiesNewRoute: StudiesNewRoute,
   StudiesIndexRoute: StudiesIndexRoute,
+  RoundsRoundIdResultRoute: RoundsRoundIdResultRoute,
+  RoundsRoundIdReviewRoute: RoundsRoundIdReviewRoute,
   StudiesStudyIdEditRoute: StudiesStudyIdEditRoute,
   StudiesStudyIdTopicsRoute: StudiesStudyIdTopicsRoute,
+  RoundsRoundIdIndexRoute: RoundsRoundIdIndexRoute,
   StudiesStudyIdIndexRoute: StudiesStudyIdIndexRoute,
   StudiesStudyIdRoundsNewRoute: StudiesStudyIdRoundsNewRoute,
 }

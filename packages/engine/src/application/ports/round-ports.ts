@@ -16,6 +16,7 @@ export interface StoredRound {
   plan: RoundPlan | null;
   status: "generating" | "ready";
   jobId: string | null;
+  createdAt: Date;
 }
 
 export interface StoredRoundQuestion {
@@ -40,9 +41,11 @@ export interface StoredAnswer {
 export interface RoundRepository {
   insert(
     studyId: string,
-    settings: { count: number; mode: RoundMode; topicIds: string[] | null; plan: RoundPlan },
+    settings: { count: number; mode: RoundMode; topicIds: string[] | null; plan: RoundPlan; createdAt: Date },
   ): Promise<StoredRound>;
   findById(id: string): Promise<StoredRound | null>;
+  /** The Study's Rounds, most recent first. */
+  listByStudy(studyId: string): Promise<StoredRound[]>;
   setJobId(id: string, jobId: string): Promise<void>;
   /** Stores the Questions and attaches them to the Round. */
   addQuestions(round: StoredRound, questions: NewQuestion[]): Promise<void>;

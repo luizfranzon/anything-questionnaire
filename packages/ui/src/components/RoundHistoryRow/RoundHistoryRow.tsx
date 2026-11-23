@@ -14,6 +14,8 @@ export interface RoundHistoryRowProps {
   answered: number;
   /** Perguntas da Rodada. Só importa quando `ended`. */
   total?: number;
+  /** Simulado ainda não terminado: o resultado só aparece ao final, então a linha não mostra acertos. */
+  resultHidden?: boolean;
   /** Rodada encerrada antes do fim: mostra só o que foi respondido. */
   ended?: boolean;
   href?: string;
@@ -33,6 +35,7 @@ export function RoundHistoryRow({
   correct,
   answered,
   total,
+  resultHidden,
   ended,
   href,
   onOpen,
@@ -57,12 +60,13 @@ export function RoundHistoryRow({
   }
 
   const empty = answered === 0;
-  const resultText = empty ? "Nenhuma respondida" : `${correct}/${answered}`;
+  const noBar = empty || resultHidden;
+  const resultText = empty ? "Nenhuma respondida" : resultHidden ? `${answered} respondidas` : `${correct}/${answered}`;
   const content = (
     <>
       <span className="rhrow__date">{date}</span>
       <span className="rhrow__mode">{MODE_LABEL[mode]}</span>
-      {empty ? <span /> : <ProgressBar compact value={correct} max={answered} aria-label={`${correct} de ${answered} certas`} />}
+      {noBar ? <span /> : <ProgressBar compact value={correct} max={answered} aria-label={`${correct} de ${answered} certas`} />}
       <span className="rhrow__result">{resultText}</span>
       <ChevronRight className="rhrow__chevron" size={20} aria-hidden />
       {ended && (

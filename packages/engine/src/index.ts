@@ -48,7 +48,9 @@ export type {
   GeneratedQuestion,
   NextQuestion,
   PresentedQuestion,
+  RoundHistoryEntry,
   RoundResult,
+  RoundReview,
 } from "./domain/question";
 export {
   PERFORMANCE_DEFAULTS,
